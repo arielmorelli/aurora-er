@@ -129,3 +129,57 @@ decided, and what changed along the way. Formal decisions live in
 - Each DTO checks its own invariants in `__post_init__` and raises
   `InvalidDTOError`; checks spanning several DTOs stay in `solve()`.
 - Negative prices are explicitly allowed: both markets have them.
+
+### 10. Solver implementation
+
+- Implemented the problem definition in `aurora_er.solver`: cross-DTO
+  validation → numeric problem on a base grid → Pyomo MILP → injected backend
+  (`HighsBackend`) → result DTOs. Pyomo is confined to this package.
+- Added the remaining DTOs (`HorizonDTO`, `BatteryStateDTO`, `BatteryDTO`,
+  `SolveOptionsDTO`, result DTOs) and split market prices into buy/sell.
+- Found while implementing: subtracting two datetimes in the same `ZoneInfo`
+  uses wall-clock time, so durations across a clock change were an hour off.
+  All duration maths now goes through `aurora_er.timing` (UTC-based).
+- `solve` gained a `backend` argument (dependency injection), so status and
+  failure paths are tested with fake backends.
+- Tests solve small hand-checkable instances with real HiGHS: losses, the
+  brief's two-market example, hourly commitment, no simultaneous
+  charge/discharge across markets, degradation, cycle and calendar
+  replacement, cycle pace.
+
+### 11. Tests on the provided data
+
+- The author asked for a test that feeds the real inputs to the solver, with
+  values copied from the spreadsheets into the code.
+- Chose the first week of January 2018 (336 half-hourly + 168 hourly prices):
+  the full three years would be ~79k hard-coded values and a slow solve, and
+  January is UTC in the UK, so the timestamps need no DST handling. The week
+  was checked for timestamp gaps first.
+- Added an independent checker that recomputes the brief's rules from a
+  result (power limits, no simultaneous charge/discharge, energy balance with
+  losses, degraded volume, revenue) and tests for the checker itself.
+- First real-data result: £1,239.53 market profit over the week (21.6 cycles);
+  £1,109.84 with the cycle pace cap (9.6 cycles). Both pinned as regression
+  values.
+- The two week-long solves take ~15 s, which now dominates `make check`.
+
+### 12. Valuing battery wear
+
+- The author asked whether the solver finds the best balance between profit
+  and cycle use. It did not: within a horizon, cycles were free unless they
+  crossed the lifetime, and the pace cap only imposed a fixed budget.
+- On the real week the uncapped run spent ~£100 of battery life per cycle to
+  earn ~£11.
+- Fix → [ADR 0008](adr/0008-valuing-battery-wear.md): the battery is worth its
+  capex in proportion to its remaining cycles, and the objective includes its
+  end value, so each cycle costs capex / lifetime cycles. The author noted this
+  equals the earlier-rejected cost per cycle; it is now derived from inputs and
+  the replacement rule rather than assumed.
+- ADR 0007 was accepted and committed, so it is superseded in part by ADR 0008
+  rather than edited.
+- Real week after the fix: 6.5 cycles, £973.82 market profit, £321 after wear
+  (vs −£923 uncapped and +£152 capped before). The pace cap no longer binds,
+  and the suite runs in ~2 s instead of ~17 s.
+- Found a tie: a battery ending exactly at its cycle limit may or may not be
+  replaced at the last boundary (cost and restored value cancel). Documented;
+  tests avoid that edge.

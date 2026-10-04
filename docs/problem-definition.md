@@ -24,8 +24,12 @@ def solve(
     horizon: HorizonDTO,
     markets: Sequence[MarketDTO],
     options: SolveOptionsDTO,
+    backend: MilpBackend,
 ) -> DispatchResultDTO: ...
 ```
+
+`backend` is injected ([dependency injection](guidelines/code-style.md#dependency-injection)):
+`HighsBackend` in production, fakes in tests.
 
 ## Inputs
 
@@ -171,28 +175,45 @@ at its boundary tc (first boundary at or after that instant):
 
 `R` bounds the number of cycle-driven replacements and is derived from the
 inputs, not hard-coded: the most cycles the battery could run in the horizon,
-`T × h(δ) × Pd / ((1 − ηd) × V)`, divided by `Lc`, rounded up, plus one.
+`z0 + T × h(δ) × Pd / ((1 − ηd) × V)`, divided by `Lc`, rounded up (at
+least 1).
 
 When the cycle limit is crossed mid-step, the excess cycles carry over to the
 new battery (`z` drops by exactly `Lc`); this is exact up to one base step.
 
 ### Objective
 
+Battery wear is valued ([ADR 0008](adr/0008-valuing-battery-wear.md)): the
+installed battery is worth its capex in proportion to the cycles it has left.
+
 ```
-maximise  market_profit − replacement_capex
+battery_value(z)  = X × (Lc − z) / Lc
+
+maximise  market_profit − replacement_capex + battery_value(z[T])
 
 market_profit     = Σm Σk h(Δm) × (ps[m,k] × d[m,k] − pb[m,k] × c[m,k])
 replacement_capex = X × (r[T] + (1 − w) × [tc in horizon])
 ```
 
-Initial capex and opex do not depend on the decisions and are added to the
+Each cycle therefore costs `X / Lc` (£100 for Attachment 1): a cycle-driven
+replacement pays `X` but restores `X` of value, so it nets to zero, and a
+calendar replacement costs the value the old battery still had.
+
+The remaining terms do not depend on the decisions and are added to the
 reported result only:
 
 ```
-initial_capex = X  if commissioned_at == horizon.start, else 0
-opex          = O × number of operating years started in the horizon,
-                where operating year n starts at commissioned_at + n years (n ≥ 0)
+initial_capex       = X  if commissioned_at == horizon.start, else 0
+opex                = O × number of operating years started in the horizon,
+                      where operating year n starts at commissioned_at + n years (n ≥ 0)
+battery_value_start = 0  if commissioned_at == horizon.start (bought in the horizon,
+                      counted in initial_capex), else battery_value(z0)
+
+net_profit = market_profit − capex − opex + battery_value_end − battery_value_start
 ```
+
+Battery value ignores calendar age: an unused battery keeps its value until
+its calendar end of life, when the calendar replacement writes it off.
 
 ### Optional: cycle pace
 
@@ -204,8 +225,8 @@ life:
 Σt q[t] ≤ (Lc − z0) × h(end − start) / h(commissioned_at + Ly − start)
 ```
 
-When false, cycles are limited only by R13/R14: they cost nothing until a
-replacement is triggered.
+When false, cycles are limited by their wear cost and by R13/R14. With wear
+valued, the cap is a comparison tool rather than a necessity.
 
 ## Output
 
@@ -215,9 +236,11 @@ DispatchResultDTO
 ├── status: SolveStatus                      # OPTIMAL | FEASIBLE (time limit, gap > 0)
 ├── mip_gap: float
 ├── market_profit_gbp: float
-├── capex_gbp: float                         # initial purchase + replacements
+├── capex_gbp: float                         # cash: initial purchase + replacements
 ├── opex_gbp: float
-├── net_profit_gbp: float                    # market − capex − opex
+├── battery_value_start_gbp: float           # 0 if bought at horizon start
+├── battery_value_end_gbp: float
+├── net_profit_gbp: float                    # market − capex − opex + value end − value start
 ├── markets: tuple[MarketDispatchDTO, ...]   # same order as the input
 │     ├── name: str
 │     ├── step_length: timedelta
@@ -276,8 +299,10 @@ failure is raised as an error rather than returned as a status.
 
 ## Known limitations
 
-- **End-of-horizon effect.** Cycles used near the end of the horizon bring a
-  future replacement closer, but that replacement may fall after the horizon
-  and is not charged. `enforce_cycle_pace` is the available mitigation.
+- **Tie at the cycle limit.** A battery that ends the horizon exactly at
+  `lifetime_cycles` may or may not be replaced at the last boundary: the
+  replacement costs `X` and restores `X` of value, so both are optimal.
+- **Battery value is linear in cycles.** It ignores calendar age and the
+  volume already lost to degradation.
 - **Calendar replacement of a replaced battery** is not modelled; validation
   keeps the horizon within one calendar lifetime so it cannot occur.

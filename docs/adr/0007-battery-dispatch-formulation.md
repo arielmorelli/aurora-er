@@ -1,6 +1,6 @@
 # 0007. Battery dispatch formulation
 
-- **Status:** Accepted
+- **Status:** Accepted; battery lifetime costing superseded by [0008](0008-valuing-battery-wear.md)
 - **Date:** 2026-10-04
 
 ## Context
@@ -16,7 +16,8 @@ the brief are modelled. The full specification is in
 ### Interface
 
 - **One entry point** receives everything as arguments:
-  `solve(battery, horizon, markets, options) -> DispatchResultDTO`.
+  `solve(battery, horizon, markets, options, backend) -> DispatchResultDTO`.
+  The optimisation backend is injected, so tests can replace it.
 - **No hard-coded values.** Every number comes from a DTO; DTOs have no
   default field values, so every input is explicit at the call site. Only
   unit conversions are constants in code.
