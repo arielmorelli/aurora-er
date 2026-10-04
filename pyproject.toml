@@ -1,0 +1,64 @@
+[project]
+name = "aurora-er"
+version = "0.1.0"
+description = "Battery dispatch model that charges and discharges across electricity markets to maximise profit."
+readme = "README.md"
+authors = [
+    { name = "ariel.morelli", email = "ariel.morelli2@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "highspy>=1.15.1",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.6",
+    "pyomo>=6.10.1",
+    "pyyaml>=6.0.3",
+    "streamlit>=1.65.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13",
+    "pandas-stubs>=3.0.5.260914",
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+
+# Pyomo ships no type information; see docs/adr/0006-optimisation-modelling-and-solver.md.
+[[tool.mypy.overrides]]
+module = ["pyomo", "pyomo.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
