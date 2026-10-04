@@ -7,7 +7,10 @@ authors = [
     { name = "ariel.morelli", email = "ariel.morelli2@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "highspy>=1.15.1",
+    "pyomo>=6.10.1",
+]
 
 [dependency-groups]
 dev = [
@@ -44,6 +47,11 @@ select = [
 python_version = "3.12"
 strict = true
 files = ["src", "tests"]
+
+# Pyomo ships no type information; see docs/adr/0006-optimisation-modelling-and-solver.md.
+[[tool.mypy.overrides]]
+module = ["pyomo", "pyomo.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
