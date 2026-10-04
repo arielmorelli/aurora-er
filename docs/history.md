@@ -68,3 +68,21 @@ decided, and what changed along the way. Formal decisions live in
     artefacts).
   - The fixed grid (start + step) lets the loader snap to it rather than trust
     each timestamp.
+
+### 6. Solver choice
+
+- Requirement from the author: Pyomo + HiGHS, with the ADR discussing the
+  alternatives (OR-Tools and others) → [ADR 0006](adr/0006-optimisation-modelling-and-solver.md).
+- Framed the problem first: continuous power/SoC decisions with linear
+  constraints, plus "no simultaneous charge and discharge", which needs
+  binaries because both markets have negative prices → MILP.
+- Compared approaches (heuristic, dynamic programming, MILP), modelling layers
+  (Pyomo, OR-Tools, PuLP, linopy, CVXPY, SciPy, python-mip) and solvers
+  (HiGHS, CBC, GLPK, SCIP, commercial). Main criterion: reviewers reproduce
+  results with `make install` alone.
+- Added `pyomo` and `highspy` as runtime dependencies; verified a small MILP
+  solves through Pyomo's HiGHS interface.
+- Pyomo has no type information, so mypy skips it; Pyomo is to stay confined
+  to the optimisation module behind DTOs.
+- Full-horizon size (~250k variables, ~50k binaries) flagged; rolling horizon
+  deferred to a later ADR if needed.
