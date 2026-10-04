@@ -37,7 +37,7 @@ To reproduce them, `make run-example` solves the provided data (2018 to 2020) fo
 
 ## Tests
 
-The project has only unit tests, run by `make test` and on every commit. There are no separate integration or end-to-end suites, because for this application the unit tests already cover the full path from the provided files to the result:
+The project has only unit tests, run by `make test`, on every commit, and in CI (GitHub Actions runs `make test` and `make check` on every pull request and push to `main`). There are no separate integration or end-to-end suites, because for this application the unit tests already cover the full path from the provided files to the result:
 
 - **Real data through the solver:** the battery from Attachment 1 and the first week of both markets from Attachment 2, solved to optimality, with every rule of the brief re-checked independently on the result.
 - **The example run:** `make run-example`'s configuration reads the provided spreadsheets and solves a day of them.

@@ -32,6 +32,7 @@ This folder is the source of truth for how the project is structured and how wor
 | [0013](adr/0013-sessions-and-background-runs.md) | Sessions and background runs | Accepted, runs superseded by 0014 |
 | [0014](adr/0014-background-runs-in-processes.md) | Background runs in processes | Accepted |
 | [0015](adr/0015-remove-three-month-windows.md) | Remove three-month windows | Accepted |
+| [0016](adr/0016-continuous-integration.md) | Continuous integration | Accepted |
 
 New ADRs copy [`adr/template.md`](adr/template.md), take the next number, and are added to the table above.
 

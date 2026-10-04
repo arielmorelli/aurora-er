@@ -195,3 +195,7 @@ How the project is being built, step by step: what was asked, what was decided, 
 - Known limitation added on request: all markets must come from one prices file (one sheet per market); the loaders and solver allow a file per market, but the UI and sessions do not.
 - Known limitation added on request: no logging, tracing (OpenTelemetry) or error tracking (Sentry).
 - The README now lists the ADRs behind the solver and modelling decisions and points to `src/aurora_er/solver/model.py` for the solver code.
+
+### 23. Continuous integration
+
+- On request, a GitHub Actions workflow runs `make test` and `make check` on every pull request and push to `main`, installing exactly the locked dependencies → [ADR 0016](adr/0016-continuous-integration.md). There is no deployment step, as there is no environment to deploy to.

@@ -22,7 +22,7 @@ Every `make` target is listed in the [README](../../README.md#quick-start). Task
 
 - Source code goes in `src/aurora_er/`; unit tests in `tests/`, named `test_<module>.py`.
 - Every new behaviour comes with unit tests.
-- `make check` passes before every commit.
+- `make check` passes before every commit; CI runs it again on every pull request ([ADR 0016](../adr/0016-continuous-integration.md)).
 - Commit messages follow Conventional Commits, e.g. `feat(battery): add state-of-charge limits` (see ADR 0004).
 - Never hand-edit `uv.lock`; change dependencies through `uv add` / `uv remove`.
 - Never modify files in `inputs/`.
