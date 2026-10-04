@@ -4,6 +4,7 @@ Subtracting two datetimes that share a `tzinfo` object uses wall-clock time
 and ignores daylight-saving shifts, so durations are always computed in UTC.
 """
 
+import calendar
 from datetime import UTC, datetime, timedelta
 
 ONE_HOUR = timedelta(hours=1)
@@ -34,3 +35,15 @@ def add_years(moment: datetime, years: int) -> datetime:
         return moment.replace(year=target_year)
     except ValueError:
         return moment.replace(year=target_year, day=moment.day - 1)
+
+
+def add_months(moment: datetime, months: int) -> datetime:
+    """Same wall-clock time `months` later, in `moment`'s own timezone.
+
+    Days past the end of the target month map to its last day.
+    """
+    month_index = moment.month - 1 + months
+    year = moment.year + month_index // 12
+    month = month_index % 12 + 1
+    day = min(moment.day, calendar.monthrange(year, month)[1])
+    return moment.replace(year=year, month=month, day=day)

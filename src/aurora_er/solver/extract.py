@@ -44,11 +44,36 @@ def build_result(
         stored_energy_mwh=stored,
         cycles_used_in_horizon=cycles_in_horizon(problem, markets),
         replacements=replacements,
-        final_state=BatteryStateDTO(
+        final_state=final_state(
+            problem,
             stored_energy_mwh=stored[-1],
             cycles_used=cycles[-1],
             commissioned_at=last_commissioning(problem, replaced, calendar_replaced),
         ),
+    )
+
+
+def final_state(
+    problem: DispatchProblem,
+    *,
+    stored_energy_mwh: float,
+    cycles_used: float,
+    commissioned_at: datetime,
+) -> BatteryStateDTO:
+    """Battery state at the horizon end, clamped to its physical bounds.
+
+    Solver tolerances can leave values a hair outside their bounds; clamping keeps
+    the state valid as the start of the next window.
+    """
+    spec = problem.battery.spec
+    cycles = min(max(0.0, cycles_used), float(spec.lifetime_cycles))
+    usable_volume = spec.max_storage_volume_mwh * (
+        1 - spec.degradation_rate_pct_per_cycle / 100 * cycles
+    )
+    return BatteryStateDTO(
+        stored_energy_mwh=min(max(0.0, stored_energy_mwh), usable_volume),
+        cycles_used=cycles,
+        commissioned_at=commissioned_at,
     )
 
 

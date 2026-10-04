@@ -1,4 +1,4 @@
-"""First week of January 2018 from `docs/input/Attachment 2.xlsx`, copied verbatim.
+"""First week of January 2018 from `inputs/Attachment 2.xlsx`, copied verbatim.
 
 Prices in GBP/MWh; Market 1 is half-hourly from 2018-01-01 00:00, Market 2 hourly.
 January is UTC in the UK, so the timestamps are exact in UTC."""

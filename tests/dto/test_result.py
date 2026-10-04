@@ -10,6 +10,7 @@ from aurora_er.dto import (
     HorizonDTO,
     InvalidDTOError,
     MarketDispatchDTO,
+    RollingDispatchResultDTO,
     SolveStatus,
 )
 
@@ -98,3 +99,82 @@ def test_result_is_valid() -> None:
 def test_result_rejects_invalid_values(changes: dict[str, Any], message: str) -> None:
     with pytest.raises(InvalidDTOError, match=message):
         dataclasses.replace(_two_hour_result(), **changes)
+
+
+def _shifted(result: DispatchResultDTO, hours: int) -> DispatchResultDTO:
+    offset = timedelta(hours=hours)
+    return dataclasses.replace(
+        result,
+        horizon=HorizonDTO(start=result.horizon.start + offset, end=result.horizon.end + offset),
+    )
+
+
+def _two_windows() -> RollingDispatchResultDTO:
+    first = _two_hour_result()
+    second = dataclasses.replace(
+        _shifted(first, 2),
+        status=SolveStatus.FEASIBLE,
+        mip_gap=0.01,
+        capex_gbp=0.0,
+        opex_gbp=0.0,
+        battery_value_start_gbp=2.0,
+        battery_value_end_gbp=1.0,
+        net_profit_gbp=39.0,
+        replacements=1,
+    )
+    return RollingDispatchResultDTO(
+        horizon=HorizonDTO(start=first.horizon.start, end=second.horizon.end),
+        windows=(first, second),
+    )
+
+
+def test_rolling_totals_sum_the_windows() -> None:
+    rolling = _two_windows()
+    assert rolling.market_profit_gbp == 80.0
+    assert rolling.capex_gbp == 10.0
+    assert rolling.opex_gbp == 5.0
+    assert rolling.net_profit_gbp == 24.0 + 39.0
+    assert rolling.cycles_used_in_horizon == 2.0
+    assert rolling.replacements == 1
+
+
+def test_rolling_battery_values_come_from_the_ends() -> None:
+    rolling = _two_windows()
+    assert rolling.battery_value_start_gbp == 3.0
+    assert rolling.battery_value_end_gbp == 1.0
+    assert rolling.final_state == rolling.windows[-1].final_state
+
+
+def test_rolling_is_optimal_only_if_every_window_is() -> None:
+    assert not _two_windows().all_optimal
+    single = _two_hour_result()
+    assert RollingDispatchResultDTO(horizon=single.horizon, windows=(single,)).all_optimal
+
+
+@pytest.mark.parametrize(
+    ("windows", "message"),
+    [
+        ((), "must not be empty"),
+        ((_shifted(_two_hour_result(), 1),), "first window"),
+        ((_two_hour_result(), _shifted(_two_hour_result(), 3)), "last window|consecutive"),
+    ],
+)
+def test_rolling_rejects_inconsistent_windows(
+    windows: tuple[DispatchResultDTO, ...], message: str
+) -> None:
+    horizon = HorizonDTO(
+        start=_two_hour_result().horizon.start,
+        end=_two_hour_result().horizon.start + timedelta(hours=4),
+    )
+    with pytest.raises(InvalidDTOError, match=message):
+        RollingDispatchResultDTO(horizon=horizon, windows=windows)
+
+
+def test_rolling_rejects_gap_between_windows() -> None:
+    first = _two_hour_result()
+    later = _shifted(first, 3)
+    with pytest.raises(InvalidDTOError, match="consecutive"):
+        RollingDispatchResultDTO(
+            horizon=HorizonDTO(start=first.horizon.start, end=later.horizon.end),
+            windows=(first, later),
+        )

@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 
 from aurora_er.dto import MarketDispatchDTO
-from aurora_er.solver.extract import cycles_in_horizon, last_commissioning
+from aurora_er.solver.extract import cycles_in_horizon, final_state, last_commissioning
 from aurora_er.solver.problem import DispatchProblem, prepare_problem
 from tests.solver.scenarios import HALF_HOUR, ONE_HOUR, START, battery, hours, market, options
 
@@ -67,3 +67,26 @@ def test_last_commissioning_at_calendar_replacement() -> None:
 def test_last_commissioning_picks_later_of_cycle_and_calendar() -> None:
     problem = _two_markets(commissioned_hours_before_end_of_life=1)
     assert last_commissioning(problem, (0, 0, 0, 1, 1), True) == START + 3 * HALF_HOUR
+
+
+def test_final_state_clamps_solver_noise_to_bounds() -> None:
+    problem = prepare_problem(
+        battery(volume_mwh=1, lifetime_cycles=10, degradation_pct_per_cycle=1),
+        hours(1),
+        [market("M", ONE_HOUR, (1,))],
+        options(),
+    )
+    state = final_state(
+        problem, stored_energy_mwh=1.0, cycles_used=10 + 1e-9, commissioned_at=START
+    )
+    assert state.cycles_used == 10
+    assert state.stored_energy_mwh == pytest.approx(0.9)
+
+
+def test_final_state_clamps_negative_noise_to_zero() -> None:
+    problem = prepare_problem(battery(), hours(1), [market("M", ONE_HOUR, (1,))], options())
+    state = final_state(
+        problem, stored_energy_mwh=-1e-12, cycles_used=-1e-12, commissioned_at=START
+    )
+    assert state.stored_energy_mwh == 0
+    assert state.cycles_used == 0

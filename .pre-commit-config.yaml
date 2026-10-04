@@ -9,7 +9,7 @@ repos:
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
-        exclude: ^docs/input/
+        exclude: ^inputs/
 
   # Local hooks use the versions pinned in uv.lock, so pre-commit and
   # `uv run <tool>` never disagree.

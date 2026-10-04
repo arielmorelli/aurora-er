@@ -2,6 +2,7 @@
 
 from aurora_er.solver.backend import BackendOutcome, HighsBackend, MilpBackend
 from aurora_er.solver.errors import InvalidSolveInputError, SolverFailedError
+from aurora_er.solver.rolling import monthly_windows, solve_rolling
 from aurora_er.solver.solve import solve
 
 __all__ = [
@@ -10,5 +11,7 @@ __all__ = [
     "InvalidSolveInputError",
     "MilpBackend",
     "SolverFailedError",
+    "monthly_windows",
     "solve",
+    "solve_rolling",
 ]

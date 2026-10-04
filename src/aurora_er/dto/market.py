@@ -1,4 +1,4 @@
-"""Wholesale electricity market prices, as provided in `docs/input/Attachment 2.xlsx`."""
+"""Wholesale electricity market prices, as provided in `inputs/Attachment 2.xlsx`."""
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta

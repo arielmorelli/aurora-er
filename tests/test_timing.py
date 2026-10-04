@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from aurora_er.timing import add_years, elapsed, in_hours, to_utc
+from aurora_er.timing import add_months, add_years, elapsed, in_hours, to_utc
 
 LONDON = ZoneInfo("Europe/London")
 
@@ -52,3 +52,19 @@ def test_add_years_maps_29_february_to_28_february() -> None:
 
 def test_add_years_keeps_29_february_in_leap_years() -> None:
     assert add_years(datetime(2020, 2, 29, tzinfo=UTC), 4) == datetime(2024, 2, 29, tzinfo=UTC)
+
+
+def test_add_months_within_year() -> None:
+    assert add_months(datetime(2018, 1, 1, tzinfo=UTC), 1) == datetime(2018, 2, 1, tzinfo=UTC)
+
+
+def test_add_months_across_year_end() -> None:
+    assert add_months(datetime(2018, 11, 1, tzinfo=UTC), 3) == datetime(2019, 2, 1, tzinfo=UTC)
+
+
+def test_add_months_clamps_to_last_day() -> None:
+    assert add_months(datetime(2018, 1, 31, tzinfo=UTC), 1) == datetime(2018, 2, 28, tzinfo=UTC)
+
+
+def test_add_months_keeps_wall_clock_in_zone() -> None:
+    assert add_months(datetime(2018, 3, 1, tzinfo=LONDON), 1) == datetime(2018, 4, 1, tzinfo=LONDON)

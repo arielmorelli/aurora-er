@@ -4,7 +4,12 @@ from aurora_er.dto.battery import BatteryDTO, BatterySpecDTO, BatteryStateDTO
 from aurora_er.dto.horizon import HorizonDTO
 from aurora_er.dto.market import MarketDTO
 from aurora_er.dto.options import SolveOptionsDTO
-from aurora_er.dto.result import DispatchResultDTO, MarketDispatchDTO, SolveStatus
+from aurora_er.dto.result import (
+    DispatchResultDTO,
+    MarketDispatchDTO,
+    RollingDispatchResultDTO,
+    SolveStatus,
+)
 from aurora_er.dto.validation import InvalidDTOError
 
 __all__ = [
@@ -16,6 +21,7 @@ __all__ = [
     "InvalidDTOError",
     "MarketDTO",
     "MarketDispatchDTO",
+    "RollingDispatchResultDTO",
     "SolveOptionsDTO",
     "SolveStatus",
 ]

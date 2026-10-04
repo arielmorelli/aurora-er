@@ -146,3 +146,86 @@ class DispatchResultDTO:
         )
         require(self.cycles_used_in_horizon >= 0, "cycles_used_in_horizon must not be negative")
         require(self.replacements >= 0, "replacements must not be negative")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class RollingDispatchResultDTO:
+    """Dispatch over a long horizon solved as consecutive windows.
+
+    Each window is optimal (or best found) on its own; the whole is not proven
+    optimal because windows do not see each other's prices.
+    """
+
+    horizon: HorizonDTO
+    """Whole window covered, from the first window's start to the last one's end."""
+
+    windows: tuple[DispatchResultDTO, ...]
+    """Result of each window, in time order; each starts from the previous final state."""
+
+    @property
+    def market_profit_gbp(self) -> float:
+        """Sales minus purchases across all windows."""
+        return sum(window.market_profit_gbp for window in self.windows)
+
+    @property
+    def capex_gbp(self) -> float:
+        """Purchases across all windows."""
+        return sum(window.capex_gbp for window in self.windows)
+
+    @property
+    def opex_gbp(self) -> float:
+        """Fixed operational costs across all windows."""
+        return sum(window.opex_gbp for window in self.windows)
+
+    @property
+    def battery_value_start_gbp(self) -> float:
+        """Value of the battery owned before the first window."""
+        return self.windows[0].battery_value_start_gbp
+
+    @property
+    def battery_value_end_gbp(self) -> float:
+        """Value of the battery installed at the end of the last window."""
+        return self.windows[-1].battery_value_end_gbp
+
+    @property
+    def net_profit_gbp(self) -> float:
+        """Sum of window net profits; battery values telescope between windows."""
+        return sum(window.net_profit_gbp for window in self.windows)
+
+    @property
+    def cycles_used_in_horizon(self) -> float:
+        """Full-cycle equivalents across all windows."""
+        return sum(window.cycles_used_in_horizon for window in self.windows)
+
+    @property
+    def replacements(self) -> int:
+        """Batteries replaced across all windows."""
+        return sum(window.replacements for window in self.windows)
+
+    @property
+    def final_state(self) -> BatteryStateDTO:
+        """Battery state at the end of the last window."""
+        return self.windows[-1].final_state
+
+    @property
+    def all_optimal(self) -> bool:
+        """Whether every window was solved to proven optimality."""
+        return all(window.status is SolveStatus.OPTIMAL for window in self.windows)
+
+    def __post_init__(self) -> None:
+        require(bool(self.windows), "windows must not be empty")
+        require(
+            self.windows[0].horizon.start == self.horizon.start,
+            "first window must start at the horizon start",
+        )
+        require(
+            self.windows[-1].horizon.end == self.horizon.end,
+            "last window must end at the horizon end",
+        )
+        require(
+            all(
+                earlier.horizon.end == later.horizon.start
+                for earlier, later in zip(self.windows, self.windows[1:], strict=False)
+            ),
+            "windows must be consecutive",
+        )
