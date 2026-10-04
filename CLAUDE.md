@@ -28,6 +28,11 @@ before proceeding rather than working around them.
   Report failures honestly.
 - **Commit messages follow Conventional Commits** (ADR 0004), e.g.
   `feat(battery): add state-of-charge limits`.
+- **Every `datetime` is timezone-aware.** Never create or pass a naive one.
+- **No hard-coded values.** Every number comes from a DTO; DTO fields have no
+  defaults. Only unit conversions may be constants.
+- **The solver implements [`docs/problem-definition.md`](docs/problem-definition.md).**
+  Every rule must trace back to the brief or the attachments.
 - Code is fully typed (mypy strict) and every new behaviour has unit tests.
 - **Clean code: docstrings are required, `#` comments only when extremely
   necessary**

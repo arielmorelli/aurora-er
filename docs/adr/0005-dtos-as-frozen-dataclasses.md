@@ -19,8 +19,15 @@ not something the DTOs know about.
   - `slots` — no accidental attributes, smaller instances.
   - `kw_only` — construction is explicit, so fields of the same type
     (e.g. charge and discharge rates) cannot be swapped by position.
-- DTOs carry data only: no behaviour, no validation, no parsing. Validation
-  and domain rules belong to the layers that consume them.
+- DTOs carry data only: no behaviour and no parsing.
+- **DTOs validate themselves on construction when possible.** Any invariant
+  that can be checked from the DTO's own fields (positive rates, fractions in
+  range, timezone-aware datetimes, one price per step, finite numbers) is
+  checked in `__post_init__` and raises `InvalidDTOError` (a `ValueError`).
+  An invalid DTO cannot exist.
+- Checks that need more than one DTO (e.g. the horizon lies inside every
+  market, the stored energy fits the spec's volume) belong to the consumer,
+  such as the solver's input validation.
 - Field names carry their unit as a suffix (`_mw`, `_mwh`, `_gbp`,
   `_gbp_per_year`, `_fraction`, `_pct_per_cycle`) because the inputs mix units
   and percent-vs-fraction conventions.
@@ -39,7 +46,8 @@ not something the DTOs know about.
 ## Consequences
 
 - DTOs are trivially constructible in tests and type-checked by mypy strict.
-- Any input validation must be written explicitly elsewhere; a DTO can hold
-  nonsensical values (e.g. a negative capacity).
-- If runtime validation at the boundary becomes necessary, a new ADR can
-  revisit pydantic.
+- Invalid input fails fast, at the transport boundary where the DTO is built,
+  with a message naming the field.
+- Validation is hand-written; it covers value invariants, not types (mypy
+  covers types statically). If runtime type coercion becomes necessary, a new
+  ADR can revisit pydantic.

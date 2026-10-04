@@ -86,3 +86,46 @@ decided, and what changed along the way. Formal decisions live in
   to the optimisation module behind DTOs.
 - Full-horizon size (~250k variables, ~50k binaries) flagged; rolling horizon
   deferred to a later ADR if needed.
+
+### 7. Problem definition
+
+- The author described the solver interface; each point was checked against
+  the brief before being documented → [problem definition](problem-definition.md),
+  [ADR 0007](adr/0007-battery-dispatch-formulation.md).
+- Single entry point `solve(battery, horizon, markets, options)`; the new
+  `BatteryDTO` combines the static spec with the current state.
+- Output: split charge/discharge per market on its own step, stored energy on
+  the finest grid, profit breakdown, `final_state` to chain windows, errors
+  raised instead of returned.
+- Degradation: the author asked whether it should be per step — yes, and it
+  stays linear.
+- Lifetime: the author rejected a cost per cycle. Instead, reaching the cycle
+  (or calendar) limit triggers a replacement costing the capex again.
+- The pro-rated cycle cap was first proposed as a rule, then questioned by the
+  author ("how do you know it should last 10 years?"). Attachment 1 only gives
+  maximums, so the cap became a required option, not a rule.
+- New project rule from the author: **no hard-coded values**; everything comes
+  through DTOs, which have no defaults.
+- Other decisions: opex per operating year started; cycles counted on energy
+  out of storage; a replacement keeps stored energy; separate buy/sell prices
+  per market; `MarketDTO` keeps its own horizon fields.
+- End-of-horizon stored energy left as an open question.
+
+### 8. Timezones
+
+- New project rule from the author: **every `datetime` must be
+  timezone-aware**. Added to the code style guideline, `CLAUDE.md`, the
+  problem definition (input validation) and ADR 0007.
+- The spreadsheets have naive timestamps, so the loader must attach a zone.
+  Market 1's 90-minute gaps and 30-minute steps back look like UK clock
+  changes, which suggests local UK time; to be confirmed when writing the
+  loader.
+
+### 9. DTO validation
+
+- The author asked for validation on DTOs wherever possible, reversing the
+  "no validation in DTOs" rule of ADR 0005 (still Proposed, so amended in
+  place).
+- Each DTO checks its own invariants in `__post_init__` and raises
+  `InvalidDTOError`; checks spanning several DTOs stay in `solve()`.
+- Negative prices are explicitly allowed: both markets have them.
