@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install run run-example test check clean
+.PHONY: help install run run-example test check ui-clean
 
 help: ## Show available targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -20,6 +20,6 @@ test: ## Run the unit tests
 check: ## Run every quality gate (lint, format, types, tests) on all files
 	uv run pre-commit run --all-files
 
-clean: ## Delete generated files: UI sessions, caches and build output (keeps .venv)
+ui-clean: ## Delete generated files: UI sessions, caches and build output (keeps .venv)
 	rm -rf sessions .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov dist build
 	find . -path ./.venv -prune -o -type d -name __pycache__ -exec rm -rf {} +

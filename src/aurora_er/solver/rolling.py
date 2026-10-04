@@ -1,4 +1,4 @@
-"""Long horizons solved as consecutive windows of a day, a week, a month or three months."""
+"""Long horizons solved as consecutive windows of a day, a week or a month."""
 
 import dataclasses
 from collections.abc import Callable, Sequence
@@ -30,9 +30,6 @@ class WindowSize(StrEnum):
     MONTH = "month"
     """A calendar month."""
 
-    QUARTER = "3 months"
-    """Three calendar months."""
-
 
 def rolling_windows(horizon: HorizonDTO, size: WindowSize) -> tuple[HorizonDTO, ...]:
     """Split `horizon` into consecutive windows of `size`; the last one may be shorter."""
@@ -43,8 +40,6 @@ def rolling_windows(horizon: HorizonDTO, size: WindowSize) -> tuple[HorizonDTO, 
             return fixed_windows(horizon, timedelta(weeks=1))
         case WindowSize.MONTH:
             return monthly_windows(horizon, 1)
-        case WindowSize.QUARTER:
-            return monthly_windows(horizon, 3)
 
 
 def fixed_windows(horizon: HorizonDTO, length: timedelta) -> tuple[HorizonDTO, ...]:

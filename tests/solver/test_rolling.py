@@ -114,7 +114,7 @@ def test_fixed_windows_reject_non_positive_length() -> None:
 
 @pytest.mark.parametrize(
     ("size", "count"),
-    [(WindowSize.DAY, 59), (WindowSize.WEEK, 9), (WindowSize.MONTH, 2), (WindowSize.QUARTER, 1)],
+    [(WindowSize.DAY, 59), (WindowSize.WEEK, 9), (WindowSize.MONTH, 2)],
 )
 def test_rolling_windows_by_size(size: WindowSize, count: int) -> None:
     january_and_february = HorizonDTO(start=_utc(2018, 1), end=_utc(2018, 3))
@@ -125,4 +125,4 @@ def test_rolling_windows_by_size(size: WindowSize, count: int) -> None:
 
 
 def test_window_size_values() -> None:
-    assert [size.value for size in WindowSize] == ["day", "week", "month", "3 months"]
+    assert [size.value for size in WindowSize] == ["day", "week", "month"]

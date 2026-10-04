@@ -300,3 +300,20 @@ def test_warns_that_closing_the_app_stops_running_sessions(folders: tuple[Path, 
     notice = _app().info[0].value
     assert notice.startswith("This is a prototype")
     assert "stopping the app stops any running sessions" in notice
+
+
+def test_session_with_settings_that_no_longer_exist_shows_an_error(
+    folders: tuple[Path, Path],
+) -> None:
+    sessions, _ = folders
+    _done_session(sessions)
+    config_file = SessionStore(sessions).folder(DONE_ID) / "config.yaml"
+    config_file.write_text(
+        config_file.read_text(encoding="utf-8").replace(
+            "window_size: month", "window_size: 3 months"
+        ),
+        encoding="utf-8",
+    )
+    app = _history(_app())
+    assert "cannot be read" in app.error[0].value
+    assert "3 months" in app.error[0].value

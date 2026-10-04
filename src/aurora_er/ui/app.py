@@ -80,7 +80,7 @@ HELP = {
     "window": (
         "The horizon is solved in consecutive windows, each starting from the previous "
         "one's battery state. Day and week windows are 24 hours and 7 days from the start; "
-        "month and 3 months follow calendar months. Shorter windows solve faster but see "
+        "month follows calendar months. Shorter windows solve faster but see "
         "less of the prices ahead."
     ),
     "step": (
@@ -441,8 +441,15 @@ def _history_page(store: SessionStore) -> None:
 
 def _session_detail(store: SessionStore, summary: SessionSummary) -> None:
     session_id = summary.session_id
-    config = store.read_config(session_id)
     st.subheader(f"{summary.created_at:%Y-%m-%d %H:%M:%S} UTC")
+    try:
+        config = store.read_config(session_id)
+    except (OSError, KeyError, ValueError) as error:
+        st.error(
+            f"This session's settings cannot be read, e.g. because they use an option "
+            f"that no longer exists: {error}"
+        )
+        return
     st.caption(
         f"{config.horizon.start:%Y-%m-%d} → {config.horizon.end:%Y-%m-%d} "
         f"· {config.window_size.value} windows · {summary.status.state.value}"

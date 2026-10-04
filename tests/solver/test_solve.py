@@ -279,3 +279,19 @@ def test_does_not_modify_inputs() -> None:
     inputs = battery()
     solve(inputs, hours(2), [market("M", ONE_HOUR, (10, 50))], options(), HighsBackend())
     assert inputs == battery()
+
+
+def test_three_markets_with_different_steps_share_the_battery() -> None:
+    quarter_hour = ONE_HOUR / 4
+    inputs = battery(max_rate_mw=2, volume_mwh=2)
+    markets = [
+        market("M15", quarter_hour, (0, 0, 0, 0, 90, 90, 90, 90)),
+        market("M30", HALF_HOUR, (5, 5, 80, 80)),
+        market("M60", ONE_HOUR, (10, 70)),
+    ]
+    result = solve(inputs, hours(2), markets, options(), HighsBackend())
+    assert result.status is SolveStatus.OPTIMAL
+    assert [len(m.charge_mw) for m in result.markets] == [8, 4, 2]
+    assert result.energy_step_length == quarter_hour
+    assert_follows_brief(result, inputs, markets)
+    assert result.market_profit_gbp == pytest.approx(2 * 90)
