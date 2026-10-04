@@ -4,7 +4,16 @@ A Python project that models a battery charging and discharging across wholesale
 
 ## Approach
 
-The battery's decisions are a mixed-integer linear program (MILP) written in Pyomo and solved with HiGHS. For every market interval it chooses how much power to buy or sell in each market, under the brief's rules: shared charge and discharge limits across markets, capacity committed for a whole market interval, no charging and discharging at the same time, losses on the way in and out, and storage bounded by a volume that shrinks with every cycle. Battery wear is priced: the battery is worth its capex in proportion to the cycles it has left, so the solver only cycles when a price spread pays for the wear, and a battery that reaches its cycle or calendar lifetime is replaced at full capex. Three years of half-hourly data are too large for one model, so the horizon is solved in consecutive windows (a day, a week or a month), each starting from the previous window's battery state. Every input is a validated, immutable DTO; nothing in the model is hard-coded. The reasoning behind each choice is recorded in [`docs/adr/`](docs/adr/), and the full formulation in [`docs/problem-definition.md`](docs/problem-definition.md).
+The battery's decisions are a mixed-integer linear program (MILP) written in Pyomo and solved with HiGHS. For every market interval it chooses how much power to buy or sell in each market, under the brief's rules: shared charge and discharge limits across markets, capacity committed for a whole market interval, no charging and discharging at the same time, losses on the way in and out, and storage bounded by a volume that shrinks with every cycle. Battery wear is priced: the battery is worth its capex in proportion to the cycles it has left, so the solver only cycles when a price spread pays for the wear, and a battery that reaches its cycle or calendar lifetime is replaced at full capex. Three years of half-hourly data are too large for one model, so the horizon is solved in consecutive windows (a day, a week or a month), each starting from the previous window's battery state. Every input is a validated, immutable DTO; nothing in the model is hard-coded.
+
+The solver and the modelling decisions are recorded as ADRs in [`docs/adr/`](docs/adr/):
+
+- [ADR 0006](docs/adr/0006-optimisation-modelling-and-solver.md): why a MILP, Pyomo and HiGHS.
+- [ADR 0007](docs/adr/0007-battery-dispatch-formulation.md): the formulation: inputs, outputs, cycles, degradation, replacements.
+- [ADR 0008](docs/adr/0008-valuing-battery-wear.md): pricing battery wear.
+- [ADR 0010](docs/adr/0010-rolling-monthly-windows.md), [ADR 0012](docs/adr/0012-window-sizes.md), [ADR 0015](docs/adr/0015-remove-three-month-windows.md): solving in rolling windows.
+
+The full formulation (variables, constraints, objective) is in [`docs/problem-definition.md`](docs/problem-definition.md), and the solver code that implements it is in [`src/aurora_er/solver/model.py`](src/aurora_er/solver/model.py).
 
 ## Quick start
 

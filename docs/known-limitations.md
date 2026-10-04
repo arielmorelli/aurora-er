@@ -5,6 +5,7 @@ Behaviour that is simplified or not modelled, by design or for lack of time. Eac
 ## Inputs
 
 - **Price units are not read.** Prices are always taken as £/MWh, whatever the unit in the price column's header says. A sheet in €/MWh or £/kWh is used as if it were £/MWh, with no warning.
+- **All markets come from one prices file.** The UI and the example take a single prices spreadsheet, with one sheet per market; markets in separate files cannot be combined in one run. The loaders and the solver themselves accept a different file per market, so this is a limit of the UI and the session layout only.
 - **Timestamps are trusted by position.** Each price sheet is read as consecutive intervals from its first timestamp, in UTC. Rows whose timestamp does not match their position are reported but used by position; missing or extra rows are not detected as such.
 
 ## Battery model
@@ -24,5 +25,9 @@ Behaviour that is simplified or not modelled, by design or for lack of time. Eac
 - **Runs depend on the app.** Each run is a child process of the Streamlit app on the local machine, so if the app stops or crashes, its running sessions stop too; they show as interrupted the next time the app starts.
 - **Cancel takes effect after the current window,** not immediately.
 - **The result charts are basic.** The History page shows market profit per window as a bar chart; it is kept to show how similar the windows' results are, not as an analysis tool (no prices, dispatch or stored-energy charts).
+
+## Operations
+
+- **No logging, tracing or error reporting.** The project does not set up application logs, tracing (e.g. OpenTelemetry) or error tracking (e.g. Sentry). A failed run records its error in the session's `status` file and the UI shows it; there is nothing else to debug from.
 
 How these would be addressed in production, and the modelling next steps, are in [`production-architecture.md`](production-architecture.md).

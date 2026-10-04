@@ -192,3 +192,6 @@ How the project is being built, step by step: what was asked, what was decided, 
 - On request, the development guideline no longer repeats the `make` targets; it points to the README and keeps only the uv commands without a target.
 - On request, the problem definition dropped the paragraphs already covered by ADRs (no hard-coded values, timezone-aware datetimes, ADR pointers) and gained a plain explanation of what a MILP is and why this problem is one.
 - The README now points to `docs/results.md` in its opening paragraph and at the top of its Results section.
+- Known limitation added on request: all markets must come from one prices file (one sheet per market); the loaders and solver allow a file per market, but the UI and sessions do not.
+- Known limitation added on request: no logging, tracing (OpenTelemetry) or error tracking (Sentry).
+- The README now lists the ADRs behind the solver and modelling decisions and points to `src/aurora_er/solver/model.py` for the solver code.
