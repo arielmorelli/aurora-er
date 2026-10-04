@@ -1,8 +1,9 @@
-"""Battery technical and financial parameters, as provided in ``docs/input/Attachment 1.xlsx``."""
+"""Battery parameters (``docs/input/Attachment 1.xlsx``) and operating state."""
 
 from dataclasses import dataclass
+from datetime import datetime
 
-from aurora_er.dto.validation import require
+from aurora_er.dto.validation import are_finite, is_timezone_aware, require
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -67,4 +68,56 @@ class BatterySpecDTO:
         require(
             self.fixed_operational_costs_gbp_per_year >= 0,
             "fixed_operational_costs_gbp_per_year must not be negative",
+        )
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BatteryStateDTO:
+    """Condition of the installed battery at a given instant."""
+
+    stored_energy_mwh: float
+    """Energy currently held in storage."""
+
+    cycles_used: float
+    """Full-cycle equivalents used by the installed battery since it was commissioned."""
+
+    commissioned_at: datetime
+    """When the installed battery was put into service. Timezone-aware."""
+
+    def __post_init__(self) -> None:
+        require(
+            are_finite((self.stored_energy_mwh, self.cycles_used)),
+            "stored_energy_mwh and cycles_used must be finite",
+        )
+        require(self.stored_energy_mwh >= 0, "stored_energy_mwh must not be negative")
+        require(self.cycles_used >= 0, "cycles_used must not be negative")
+        require(is_timezone_aware(self.commissioned_at), "commissioned_at must be timezone-aware")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BatteryDTO:
+    """A battery: its static specification and its current state."""
+
+    spec: BatterySpecDTO
+    """Technical and financial parameters."""
+
+    state: BatteryStateDTO
+    """Condition at the start of the dispatch horizon."""
+
+    @property
+    def usable_volume_mwh(self) -> float:
+        """Storage volume left after degradation from the cycles already used."""
+        degradation_fraction = self.spec.degradation_rate_pct_per_cycle / 100
+        return self.spec.max_storage_volume_mwh * (
+            1 - degradation_fraction * self.state.cycles_used
+        )
+
+    def __post_init__(self) -> None:
+        require(
+            self.state.cycles_used <= self.spec.lifetime_cycles,
+            "state.cycles_used must not exceed spec.lifetime_cycles",
+        )
+        require(
+            self.state.stored_energy_mwh <= self.usable_volume_mwh,
+            "state.stored_energy_mwh must fit in the usable volume",
         )

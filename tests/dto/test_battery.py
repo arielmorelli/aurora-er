@@ -1,9 +1,10 @@
 import dataclasses
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
 
-from aurora_er.dto import BatterySpecDTO, InvalidDTOError
+from aurora_er.dto import BatteryDTO, BatterySpecDTO, BatteryStateDTO, InvalidDTOError
 
 
 def _attachment_1_spec() -> BatterySpecDTO:
@@ -69,3 +70,55 @@ def test_accepts_attachment_1_values() -> None:
 def test_rejects_invalid_values(changes: dict[str, Any], message: str) -> None:
     with pytest.raises(InvalidDTOError, match=message):
         dataclasses.replace(_attachment_1_spec(), **changes)
+
+
+def _new_empty_state() -> BatteryStateDTO:
+    return BatteryStateDTO(
+        stored_energy_mwh=0, cycles_used=0, commissioned_at=datetime(2018, 1, 1, tzinfo=UTC)
+    )
+
+
+def _new_empty_battery() -> BatteryDTO:
+    return BatteryDTO(spec=_attachment_1_spec(), state=_new_empty_state())
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"stored_energy_mwh": -0.1}, "stored_energy_mwh"),
+        ({"stored_energy_mwh": float("nan")}, "finite"),
+        ({"cycles_used": -1}, "cycles_used"),
+        ({"cycles_used": float("inf")}, "finite"),
+        ({"commissioned_at": datetime(2018, 1, 1)}, "commissioned_at must be timezone-aware"),
+    ],
+)
+def test_state_rejects_invalid_values(changes: dict[str, Any], message: str) -> None:
+    with pytest.raises(InvalidDTOError, match=message):
+        dataclasses.replace(_new_empty_state(), **changes)
+
+
+def test_usable_volume_of_new_battery_is_nominal() -> None:
+    assert _new_empty_battery().usable_volume_mwh == 4
+
+
+def test_usable_volume_shrinks_with_cycles_used() -> None:
+    worn_state = dataclasses.replace(_new_empty_state(), cycles_used=1000)
+    battery = dataclasses.replace(_new_empty_battery(), state=worn_state)
+    assert battery.usable_volume_mwh == pytest.approx(4 * (1 - 0.00001 * 1000))
+
+
+def test_battery_accepts_full_usable_volume() -> None:
+    full = dataclasses.replace(_new_empty_state(), stored_energy_mwh=4)
+    assert dataclasses.replace(_new_empty_battery(), state=full).state.stored_energy_mwh == 4
+
+
+def test_battery_rejects_energy_above_usable_volume() -> None:
+    worn_and_full = dataclasses.replace(_new_empty_state(), cycles_used=1000, stored_energy_mwh=4)
+    with pytest.raises(InvalidDTOError, match="usable volume"):
+        dataclasses.replace(_new_empty_battery(), state=worn_and_full)
+
+
+def test_battery_rejects_cycles_beyond_lifetime() -> None:
+    exhausted = dataclasses.replace(_new_empty_state(), cycles_used=5001)
+    with pytest.raises(InvalidDTOError, match="lifetime_cycles"):
+        dataclasses.replace(_new_empty_battery(), state=exhausted)

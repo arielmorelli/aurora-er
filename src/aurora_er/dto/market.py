@@ -4,13 +4,14 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from aurora_er.dto.validation import are_finite, is_timezone_aware, require
+from aurora_er.timing import elapsed
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class MarketDTO:
     """Price series of one market over a regular time grid.
 
-    The price at index ``i`` applies to the interval starting at
+    The prices at index ``i`` apply to the interval starting at
     ``horizon_start + i * step_length``.
     """
 
@@ -26,22 +27,35 @@ class MarketDTO:
     step_length: timedelta
     """Duration of each trading interval; capacity is committed for a whole step."""
 
-    prices_gbp_per_mwh: tuple[float, ...]
-    """One price per step, in chronological order."""
+    buy_prices_gbp_per_mwh: tuple[float, ...]
+    """Price paid per MWh imported when charging, one per step."""
+
+    sell_prices_gbp_per_mwh: tuple[float, ...]
+    """Price received per MWh exported when discharging, one per step."""
+
+    @property
+    def step_count(self) -> int:
+        """Number of trading intervals in the market's horizon."""
+        return elapsed(self.horizon_start, self.horizon_end) // self.step_length
 
     def __post_init__(self) -> None:
         require(bool(self.name.strip()), "name must not be blank")
         require(is_timezone_aware(self.horizon_start), "horizon_start must be timezone-aware")
         require(is_timezone_aware(self.horizon_end), "horizon_end must be timezone-aware")
-        require(self.horizon_start < self.horizon_end, "horizon_start must be before horizon_end")
+        horizon_length = elapsed(self.horizon_start, self.horizon_end)
+        require(horizon_length > timedelta(0), "horizon_start must be before horizon_end")
         require(self.step_length > timedelta(0), "step_length must be positive")
-        horizon_length = self.horizon_end - self.horizon_start
         require(
             horizon_length % self.step_length == timedelta(0),
             "horizon must be a whole number of steps",
         )
         require(
-            len(self.prices_gbp_per_mwh) == horizon_length // self.step_length,
-            "prices_gbp_per_mwh must have one price per step",
+            len(self.buy_prices_gbp_per_mwh) == self.step_count,
+            "buy_prices_gbp_per_mwh must have one price per step",
         )
-        require(are_finite(self.prices_gbp_per_mwh), "prices_gbp_per_mwh must be finite")
+        require(
+            len(self.sell_prices_gbp_per_mwh) == self.step_count,
+            "sell_prices_gbp_per_mwh must have one price per step",
+        )
+        require(are_finite(self.buy_prices_gbp_per_mwh), "buy_prices_gbp_per_mwh must be finite")
+        require(are_finite(self.sell_prices_gbp_per_mwh), "sell_prices_gbp_per_mwh must be finite")
