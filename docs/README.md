@@ -7,6 +7,8 @@ This folder is the source of truth for how the project is structured and how wor
 | [`adr/`](adr/) | Architecture Decision Records — *why* things are the way they are |
 | [`guidelines/`](guidelines/) | Day-to-day conventions — *how* to work in the repo |
 | [`problem-definition.md`](problem-definition.md) | The dispatch problem: inputs, rules, formulation, output |
+| [`known-limitations.md`](known-limitations.md) | What is simplified or not modelled |
+| [`results.md`](results.md) | Recorded results of the example run, dated |
 | [`production-architecture.md`](production-architecture.md) | How this would run in production, and next steps |
 | [`ui-design.md`](ui-design.md) | UI design: tabs, sessions, background runs |
 | [`history.md`](history.md) | How the project is being built, step by step |
@@ -26,9 +28,10 @@ This folder is the source of truth for how the project is structured and how wor
 | [0009](adr/0009-input-loading-and-run-configuration.md) | Input loading and run configuration | Accepted |
 | [0010](adr/0010-rolling-monthly-windows.md) | Rolling monthly windows | Accepted |
 | [0011](adr/0011-user-interface-framework.md) | User interface framework | Accepted |
-| [0012](adr/0012-window-sizes.md) | Window sizes | Accepted |
+| [0012](adr/0012-window-sizes.md) | Window sizes | Accepted, partly superseded by 0015 |
 | [0013](adr/0013-sessions-and-background-runs.md) | Sessions and background runs | Accepted, runs superseded by 0014 |
 | [0014](adr/0014-background-runs-in-processes.md) | Background runs in processes | Accepted |
+| [0015](adr/0015-remove-three-month-windows.md) | Remove three-month windows | Accepted |
 
 New ADRs copy [`adr/template.md`](adr/template.md), take the next number, and are added to the table above.
 

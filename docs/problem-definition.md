@@ -1,10 +1,6 @@
 # Problem definition
 
-The battery dispatch problem the solver implements: inputs, rules, formulation and output. Every rule traces back to the brief (`inputs/2nd Round Technical Question.pdf`) or to the battery parameters (`inputs/Attachment 1.xlsx`). Decisions and rejected alternatives are in [ADR 0007](adr/0007-battery-dispatch-formulation.md); the modelling tool is in [ADR 0006](adr/0006-optimisation-modelling-and-solver.md).
-
-No value is hard-coded: every number the model uses comes from an input DTO. The only constants in code are unit conversions (hours per timedelta, percent to fraction).
-
-Every `datetime`, in inputs and outputs, is timezone-aware. Naive datetimes are rejected.
+The battery dispatch problem the solver implements: inputs, rules, formulation and output. Every rule traces back to the brief (`inputs/2nd Round Technical Question.pdf`) or to the battery parameters (`inputs/Attachment 1.xlsx`).
 
 ## Entry point
 
@@ -20,7 +16,7 @@ def solve(
 ) -> DispatchResultDTO: ...
 ```
 
-Long horizons are solved as consecutive windows (a day, a week, a month or three months) by `solve_rolling`, which calls `solve` once per window and chains the battery state ([ADR 0010](adr/0010-rolling-monthly-windows.md), [ADR 0012](adr/0012-window-sizes.md)).
+Long horizons are solved as consecutive windows (a day, a week or a month) by `solve_rolling`, which calls `solve` once per window and chains the battery state ([ADR 0010](adr/0010-rolling-monthly-windows.md), [ADR 0012](adr/0012-window-sizes.md)).
 
 `backend` is injected ([dependency injection](guidelines/code-style.md#dependency-injection)): `HighsBackend` in production, fakes in tests.
 
@@ -90,7 +86,17 @@ Check against the brief's example: a 5 MW / 5 MWh battery committing 2 MW to Mar
 
 ## Formulation
 
-A mixed-integer linear program (MILP), solved with HiGHS through Pyomo.
+The problem is written as a **mixed-integer linear program (MILP)** and solved with HiGHS through Pyomo.
+
+A MILP is an optimisation problem with three parts:
+
+- **Variables:** the decisions to make. Most can take any value in a range (*continuous*), such as the power sold to a market or the energy stored; some must be whole numbers (*integer*), such as 0 or 1 for "the battery is charging in this step".
+- **Constraints:** rules the variables must satisfy, each a *linear* equation or inequality: variables are only multiplied by numbers and added, never multiplied by each other. For example, "charging power across markets ≤ maximum charging rate".
+- **Objective:** a linear expression to maximise or minimise; here, the profit.
+
+The solver returns the values of the variables that give the best objective while satisfying every constraint, and proves it is the best. It does so by solving the problem with the integer variables relaxed to continuous ones, then splitting on their values (*branch and bound*) until the best whole-number solution is found. The **MIP gap** is the remaining distance between the best solution found and the best possible bound; 0 means proven optimal.
+
+Here the integer variables are what make it a MILP rather than a plain linear program: one binary per step to forbid charging and discharging at the same time (R7), and the replacement counts (R13, R14). Everything else (power, stored energy, cycles) is continuous.
 
 ### Time grid
 
@@ -259,6 +265,4 @@ Valid inputs always have a feasible solution (doing nothing), so a solver failur
 
 ## Known limitations
 
-- **Tie at the cycle limit.** A battery that ends the horizon exactly at `lifetime_cycles` may or may not be replaced at the last boundary: the replacement costs `X` and restores `X` of value, so both are optimal.
-- **Battery value is linear in cycles.** It ignores calendar age and the volume already lost to degradation.
-- **Calendar replacement of a replaced battery** is not modelled; validation keeps the horizon within one calendar lifetime so it cannot occur.
+See [`known-limitations.md`](known-limitations.md).

@@ -8,18 +8,9 @@ Rationale: [ADR 0002](../adr/0002-python-tooling.md) (tooling), [ADR 0003](../ad
 make install
 ```
 
-## Everyday commands
+## Commands
 
-| Task | Command |
-| --- | --- |
-| List targets | `make` |
-| Run the model on the provided data | `make run-example` |
-| Start the UI | `make run` |
-| Delete generated files (UI sessions, caches, build output; keeps `.venv`) | `make clean` |
-| Run tests | `make test` |
-| Run every quality gate (lint, format, types, tests) | `make check` |
-
-Less frequent tasks, run directly through uv:
+Every `make` target is listed in the [README](../../README.md#quick-start). Tasks without a target run directly through uv:
 
 | Task | Command |
 | --- | --- |

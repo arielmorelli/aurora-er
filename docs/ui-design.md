@@ -32,7 +32,7 @@ sessions/
 ## Look
 
 - A notice under the title says the app is a prototype and that stopping it stops running sessions (they show as interrupted next time).
-- Blue primary colour (no red accent), larger base font (18px), blue chart colours; set in `.streamlit/config.toml`, Streamlit's own config file, read when `make run` starts the app from the repository root.
+- Blue primary colour (no red accent), a larger base font and blue chart colours; set in `.streamlit/config.toml`, Streamlit's own config file, read when `make run` starts the app from the repository root.
 - On the Run page, **Run** sits at the top right with its messages just below; **Fill with example** and the two template downloads are on separate lines.
 - Every field and button on the Run page has an info tooltip: the uploaders describe the expected spreadsheet layout, the other fields explain what the value means and the rules it must follow.
 - History lists sessions on the left (newest first, click to select) and shows the selected session on the right.
@@ -45,18 +45,18 @@ sessions/
 | --- | --- |
 | Files | Battery spreadsheet, prices spreadsheet (upload); "Download template"; "Fill with example" |
 | Battery state | Stored energy (MWh), cycles used, commissioning date and time |
-| Horizon | Start, end, window size: day, week, month or 3 months |
+| Horizon | Start, end, window size: day, week or month |
 | Solver | Enforce cycle pace (checkbox), time limit per window (s), MIP gap |
 
 All datetimes are entered and stored in UTC.
 
 ### Fill with example
 
-Copies `Attachment 1.xlsx` and `Attachment 2.xlsx` from `inputs/` into the upload folder, as if the user had uploaded them, and fills the form with the values `make run-example` uses (empty new battery commissioned 2018-01-01, horizon 2018–2020, monthly windows, no cycle pace cap, 120 s per window, gap 0). The user can still change any field before running.
+Copies `Attachment 1.xlsx` and `Attachment 2.xlsx` from `inputs/` into the upload folder, as if the user had uploaded them, and fills the form with the values `make run-example` uses (defined in `aurora_er.example`). The user can still change any field before running.
 
 ### Window size
 
-The horizon is solved in consecutive windows of one **day**, **week**, **month** or **3 months**. Days and weeks are fixed lengths from the horizon start; months and quarters follow calendar months, as today. This generalises `months_per_window` and amends [ADR 0010](adr/0010-rolling-monthly-windows.md), which only allows months; a new ADR records it when implemented.
+The horizon is solved in consecutive windows of one **day**, **week** or **month**. Days and weeks are fixed lengths from the horizon start; months follow calendar months. This generalises `months_per_window` and amends [ADR 0010](adr/0010-rolling-monthly-windows.md), which only allows months; a new ADR records it when implemented.
 
 ### Upload
 
@@ -116,7 +116,7 @@ Taken from the approved mockup; architecture in [ADR 0013](adr/0013-sessions-and
 1. **Cancel** is cooperative: a `cancel` marker file, checked by the worker after each window.
 2. **Rerun** creates a new session with a copy of the old one's files and config.
 3. **Templates:** one workbook per input (battery, prices) in the Attachment layout, generated from the loaders' expected layout.
-4. **Market definitions:** each sheet of the prices spreadsheet with a timestamp and a price column is a market. The step is not in the file, so after upload the sheets are listed in a table where the user must choose each sheet's step (15 min, 30 min or 1 hour); there is no default. Timestamps are read as UTC. (Replaces the earlier "fixed to the template layout".)
+4. **Market definitions:** each sheet of the prices spreadsheet with a timestamp and a price column is a market. The step is not in the file, so after upload the sheets are listed in a table where the user must choose each sheet's step from the options in `STEP_CHOICES` (`aurora_er.ui.form`); there is no default. Timestamps are read as UTC. (Replaces the earlier "fixed to the template layout".)
 5. **Stale sessions** still marked `running` when the app starts are marked `interrupted`.
 6. **Week windows** are 7 days counted from the horizon start ([ADR 0012](adr/0012-window-sizes.md)).
 7. **Concurrent runs** are allowed.

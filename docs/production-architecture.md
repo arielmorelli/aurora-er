@@ -19,6 +19,44 @@ flowchart LR
     Worker -->|status updates| API
 ```
 
+### A run, step by step
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI
+    participant API
+    participant DB as Database
+    participant Blob as Blob storage
+    participant Queue
+    participant Worker
+
+    User->>UI: fill the form, upload spreadsheets, press Run
+    UI->>API: create run (settings + spreadsheets)
+    API->>API: parse spreadsheets, build DTOs, check inputs
+    alt inputs are invalid
+        API-->>UI: errors
+    else inputs are valid
+        API->>Blob: store spreadsheets
+        API->>DB: run record (settings, file ids, status queued)
+        API->>Queue: run id + settings + file ids
+        API-->>UI: run id
+        Queue->>Worker: deliver message
+        Worker->>Blob: download spreadsheets
+        Worker->>API: status running
+        loop each window
+            Worker->>Worker: solve window
+            Worker->>API: check for a cancel request
+        end
+        Worker->>Blob: upload full result
+        Worker->>API: status done (or error, cancelled)
+        API->>DB: status and result totals
+        Worker->>Queue: acknowledge message
+        UI->>API: get run
+        API-->>UI: status and result
+    end
+```
+
 ### API
 
 - The only entry point: the UI, scripts or other services talk to it, never to the database, storage or workers.

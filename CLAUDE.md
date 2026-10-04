@@ -13,6 +13,7 @@ These documents are binding. If a request conflicts with them, say so and ask be
 ## Rules
 
 - **Decisions are documented.** If a change alters project structure, tooling, dependencies or the modelling approach, draft a new ADR with status *Proposed* and ask the user to accept it. Do not edit accepted ADRs — supersede them.
+- **No numbers that go stale in docs** (counts, timings, settings copied from code, results) outside ADRs, the history and `docs/results.md`.
 - **Never hard-wrap Markdown.** One line per paragraph or list item (see [`docs/guidelines/documentation.md`](docs/guidelines/documentation.md)).
 - **Keep the history.** After each step, append bullets to [`docs/history.md`](docs/history.md): what was asked, what was decided, alternatives considered and any course corrections.
 - **Stay in scope.** Do only what was asked. Suggest extra work; don't do it.

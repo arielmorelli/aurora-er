@@ -1,6 +1,6 @@
 # 0012. Window sizes
 
-- **Status:** Accepted
+- **Status:** Accepted; the `3 months` size removed by [0015](0015-remove-three-month-windows.md)
 - **Date:** 2026-10-04
 - **Amends:** [ADR 0010](0010-rolling-monthly-windows.md) — windows are no longer months only
 

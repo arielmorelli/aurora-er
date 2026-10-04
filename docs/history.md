@@ -175,3 +175,20 @@ How the project is being built, step by step: what was asked, what was decided, 
 - The author accepted ADR 0009.
 - The author described how this would run in production: an API (FastAPI) that validates requests and stores them in a database (RDS) and blob storage (S3), a queue (SQS or RabbitMQ) carrying the run id, inputs and file ids, and isolated workers that run and report status back to the API; the UI talks only to the API → [production architecture](production-architecture.md).
 - The document is explicit that the UI was mostly AI-generated and that its run machinery is a local prototype, maps each production component to the code that already does that step (`validation_errors`, `RunConfig`, `run_session`, `app.run`, the result serialisation), and lists what still has to change, starting with extracting interfaces from the folder-based `SessionStore`.
+
+### 22. README and more than two markets
+
+- The README was rewritten as the project's front page: a Python project (not a package), the approach in one paragraph, every `make` target, the reproducible example results, markets, the UI and the layout.
+- The author asked what happens with three markets. The model takes any number of markets whose steps nest (each a whole multiple of the shortest); the UI turns every price sheet into a market. A new test solves three markets with 15-minute, 30-minute and 1-hour steps and checks the brief's rules and the hand-worked profit.
+- The README now states the project has only unit tests and why they are enough here: they already run the provided data through the solver, the example configuration and the UI end to end.
+- Added a sequence diagram of one run (request, validation, storage, queue, worker, status, result) to the production architecture.
+- On request, removed numbers that go stale (test counts, run times, copied config values) from the current-state docs, and added the rule to the documentation guideline and `CLAUDE.md`.
+- Extended on request to every number that can go out of date: the example results moved from the README to a dated `docs/results.md` (with the commit they come from), and the UI design points to the config and code for the font size and step options.
+- On request, `make clean` was renamed `make ui-clean`.
+- Added `docs/known-limitations.md` on request, starting from the author's two items (price units are not read and always taken as £/MWh; a replacement keeps the stored energy and resets cycles and degradation) and gathering the limitations already documented elsewhere.
+- Added a known limitation on request: the UI result charts are basic, kept to show how similar the windows' results are.
+- Known limitations added on request: if the Streamlit app crashes, its running sessions stop too, since they are its child processes.
+- The author asked to update ADR 0012 because the 3-month window had been deleted; it was in fact still in the code. The author chose to remove it: `WindowSize.QUARTER` is gone from the solver, UI, tests and docs → [ADR 0015](adr/0015-remove-three-month-windows.md), superseding that part of ADR 0012. History shows an error for sessions saved with the removed option instead of crashing.
+- On request, the development guideline no longer repeats the `make` targets; it points to the README and keeps only the uv commands without a target.
+- On request, the problem definition dropped the paragraphs already covered by ADRs (no hard-coded values, timezone-aware datetimes, ADR pointers) and gained a plain explanation of what a MILP is and why this problem is one.
+- The README now points to `docs/results.md` in its opening paragraph and at the top of its Results section.
