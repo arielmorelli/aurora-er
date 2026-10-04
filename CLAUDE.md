@@ -1,0 +1,28 @@
+# CLAUDE.md
+
+## Read before doing anything
+
+Before writing or changing any code, read:
+
+1. [`docs/README.md`](docs/README.md) — documentation index
+2. Every ADR in [`docs/adr/`](docs/adr/)
+3. Every guideline in [`docs/guidelines/`](docs/guidelines/)
+
+These documents are binding. If a request conflicts with them, say so and ask
+before proceeding rather than working around them.
+
+## Rules
+
+- **Decisions are documented.** If a change alters project structure, tooling,
+  dependencies or the modelling approach, draft a new ADR with status
+  *Proposed* and ask the user to accept it. Do not edit accepted ADRs —
+  supersede them.
+- **Stay in scope.** Do only what was asked. Suggest extra work; don't do it.
+- **`docs/input/` is read-only.** It holds the exercise brief and data.
+- **Use the Makefile:** `make install`, `make run`, `make test`, `make check`.
+  For anything without a target, go through uv (`uv run …`, `uv add …`).
+- **Before declaring work done**, run `make check` and make sure it passes.
+  Report failures honestly.
+- **Commit messages follow Conventional Commits** (ADR 0004), e.g.
+  `feat(battery): add state-of-charge limits`.
+- Code is fully typed (mypy strict) and every new behaviour has unit tests.
