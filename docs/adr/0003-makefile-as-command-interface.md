@@ -1,6 +1,6 @@
 # 0003. Makefile as the command interface
 
-- **Status:** Accepted
+- **Status:** Accepted; `make run` replaced by `make run-example` in [0009](0009-input-loading-and-run-configuration.md)
 - **Date:** 2026-10-04
 
 ## Context

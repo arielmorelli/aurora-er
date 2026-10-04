@@ -1,6 +1,6 @@
 # 0001. Project structure and AI-assisted development
 
-- **Status:** Accepted
+- **Status:** Accepted; inputs location amended by [0009](0009-input-loading-and-run-configuration.md)
 - **Date:** 2026-10-04
 
 ## Context

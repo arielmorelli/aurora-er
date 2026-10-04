@@ -7,7 +7,6 @@ work is done in it. Read it before changing code.
 | --- | --- |
 | [`adr/`](adr/) | Architecture Decision Records — *why* things are the way they are |
 | [`guidelines/`](guidelines/) | Day-to-day conventions — *how* to work in the repo |
-| [`input/`](input/) | The exercise brief and price data (read-only) |
 | [`problem-definition.md`](problem-definition.md) | The dispatch problem: inputs, rules, formulation, output |
 | [`history.md`](history.md) | How the project is being built, step by step |
 
@@ -23,6 +22,8 @@ work is done in it. Read it before changing code.
 | [0006](adr/0006-optimisation-modelling-and-solver.md) | Optimisation modelling and solver | Accepted |
 | [0007](adr/0007-battery-dispatch-formulation.md) | Battery dispatch formulation | Accepted, partly superseded by 0008 |
 | [0008](adr/0008-valuing-battery-wear.md) | Valuing battery wear | Accepted |
+| [0009](adr/0009-input-loading-and-run-configuration.md) | Input loading and run configuration | Proposed |
+| [0010](adr/0010-rolling-monthly-windows.md) | Rolling monthly windows | Accepted |
 
 New ADRs copy [`adr/template.md`](adr/template.md), take the next number, and
 are added to the table above.

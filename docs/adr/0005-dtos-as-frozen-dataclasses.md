@@ -5,7 +5,7 @@
 
 ## Context
 
-The exercise inputs (`docs/input/`) describe the battery and the market prices.
+The exercise inputs (`inputs/`) describe the battery and the market prices.
 Those shapes will cross the transport layer (whatever reads input and writes
 results), so they need a typed, stable representation that is independent of
 the source format — the spreadsheets are only the reference for the fields,

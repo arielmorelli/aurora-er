@@ -2,8 +2,8 @@
 
 The battery dispatch problem the solver implements: inputs, rules, formulation
 and output. Every rule traces back to the brief
-(`docs/input/2nd Round Technical Question.pdf`) or to the battery parameters
-(`docs/input/Attachment 1.xlsx`). Decisions and rejected alternatives are in
+(`inputs/2nd Round Technical Question.pdf`) or to the battery parameters
+(`inputs/Attachment 1.xlsx`). Decisions and rejected alternatives are in
 [ADR 0007](adr/0007-battery-dispatch-formulation.md); the modelling tool is in
 [ADR 0006](adr/0006-optimisation-modelling-and-solver.md).
 
@@ -27,6 +27,10 @@ def solve(
     backend: MilpBackend,
 ) -> DispatchResultDTO: ...
 ```
+
+Long horizons are solved as consecutive monthly windows by `solve_rolling`,
+which calls `solve` once per window and chains the battery state
+([ADR 0010](adr/0010-rolling-monthly-windows.md)).
 
 `backend` is injected ([dependency injection](guidelines/code-style.md#dependency-injection)):
 `HighsBackend` in production, fakes in tests.
@@ -294,8 +298,8 @@ failure is raised as an error rather than returned as a status.
 
 - **Stored energy at the end of the horizon.** Not in the brief, so it is
   unconstrained: energy left in the battery has no value and the optimiser
-  will sell it if profitable. Revisit if the model is solved in consecutive
-  windows.
+  will sell it if profitable. With monthly windows this means each month
+  tends to end empty.
 
 ## Known limitations
 

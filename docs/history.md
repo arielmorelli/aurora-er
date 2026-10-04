@@ -191,3 +191,48 @@ decided, and what changed along the way. Formal decisions live in
   the code style guideline.
 - The branch history (not yet pushed) was rewritten to remove the co-author
   trailers; file contents were verified unchanged.
+
+### 14. First end-to-end run
+
+- The author confirmed wiring is "just call `solve` with the right args" and
+  asked for `make run-example`: read `inputs/` with pandas, build the DTOs,
+  run, print → [ADR 0009](adr/0009-input-loading-and-run-configuration.md)
+  (Proposed).
+- Moved the exercise inputs from `docs/input/` to `inputs/` at the repo root.
+- Every value of a run lives in a TOML config (`inputs/example.toml`), keeping
+  the "no hard-coded values" rule.
+- Correction to step 5: the market data is **not** UK local time. Every day has
+  exactly 48/24 rows, so both sheets are a UTC grid; Market 1's March anomalies
+  are 6 mislabelled rows (01:00/01:30 written as 02:00/02:30). The loader trusts
+  row order and reports those rows in every run.
+- Timing: one week ~1 s, one month ~5 s, a quarter > 10 min. The example runs
+  January 2018; the full horizon needs windowing.
+- First example result (January 2018): £4,015 market profit, 25.6 cycles,
+  mostly buying in Market 1 and selling in Market 2.
+
+### 15. Rolling monthly windows and JSON configuration
+
+- The author asked for rolling windows with months as the base →
+  [ADR 0010](adr/0010-rolling-monthly-windows.md): consecutive, non-overlapping
+  calendar-month windows, each starting from the previous final state.
+- Combined results are a new `RollingDispatchResultDTO`; the summary says
+  "every window optimal" rather than "optimal", since windows do not see each
+  other's prices.
+- Chaining exposed solver tolerances: a final state a hair outside its bounds
+  would fail the next window's validation, so it is clamped.
+- The author replaced the TOML config with **JSON**, so a future UI can produce
+  it; the example still reads and parses the spreadsheets on every run.
+- Look-ahead between windows and a value for stored energy at window ends are
+  left as improvements.
+- First full run (2018–2020, 36 monthly windows, ~3.5 min, every window
+  optimal): £124,950 market profit, 701 cycles, no replacements; after £500k
+  capex, £15k opex and £429,861 of battery value left, net £39,811. Almost all
+  profit comes from buying in Market 1 and selling in Market 2.
+- Correction from the author: `inputs/` holds only the given problem, so there
+  is no example config file. `make run-example` runs `aurora_er.example`, which
+  reads the spreadsheets on the fly and hard-codes the values they lack (file
+  locations, timezone, battery state, horizon, solver limits) in that script
+  only. The JSON reader stays for future UI-driven runs.
+- The author removed the JSON reader as well: there is no configuration file
+  at all. `RunConfig` stays as the dataclass the example script builds; the
+  `python -m aurora_er` entry point and `make run` are removed.

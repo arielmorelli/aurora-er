@@ -21,8 +21,9 @@ before proceeding rather than working around them.
   [`docs/history.md`](docs/history.md): what was asked, what was decided,
   alternatives considered and any course corrections.
 - **Stay in scope.** Do only what was asked. Suggest extra work; don't do it.
-- **`docs/input/` is read-only.** It holds the exercise brief and data.
-- **Use the Makefile:** `make install`, `make run`, `make test`, `make check`.
+- **`inputs/` is read-only.** It holds the exercise brief and data.
+- **Use the Makefile:** `make install`, `make run-example`, `make test`,
+  `make check`.
   For anything without a target, go through uv (`uv run …`, `uv add …`).
 - **Before declaring work done**, run `make check` and make sure it passes.
   Report failures honestly.

@@ -15,7 +15,7 @@ make install
 | Task | Command |
 | --- | --- |
 | List targets | `make` |
-| Run the model | `make run` |
+| Run the model on the provided data | `make run-example` |
 | Run tests | `make test` |
 | Run every quality gate (lint, format, types, tests) | `make check` |
 
@@ -36,6 +36,6 @@ Less frequent tasks, run directly through uv:
 - Commit messages follow Conventional Commits, e.g.
   `feat(battery): add state-of-charge limits` (see ADR 0004).
 - Never hand-edit `uv.lock`; change dependencies through `uv add` / `uv remove`.
-- Never modify files in `docs/input/`.
+- Never modify files in `inputs/`.
 - A change that alters structure, tooling or the modelling approach needs an ADR
   (copy [`adr/template.md`](../adr/template.md)).
