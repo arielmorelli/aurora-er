@@ -1,6 +1,6 @@
 # 0009. Input loading and run configuration
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-04
 - **Amends:** [ADR 0001](0001-project-structure-and-ai-usage.md) — exercise inputs move from `docs/input/` to `inputs/` at the repository root; [ADR 0003](0003-makefile-as-command-interface.md) — `make run` is replaced by `make run-example`
 

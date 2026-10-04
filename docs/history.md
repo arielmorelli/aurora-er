@@ -169,3 +169,9 @@ How the project is being built, step by step: what was asked, what was decided, 
 - On request, the session summary line in History shows only the horizon dates, window size and status (no session id).
 - Added `make clean`: deletes `sessions/`, tool caches, `__pycache__` folders and build output; keeps `.venv` and everything tracked by git.
 - On request, a notice under the title says the UI is a prototype and that stopping the app stops running sessions.
+
+### 21. Production architecture and next steps
+
+- The author accepted ADR 0009.
+- The author described how this would run in production: an API (FastAPI) that validates requests and stores them in a database (RDS) and blob storage (S3), a queue (SQS or RabbitMQ) carrying the run id, inputs and file ids, and isolated workers that run and report status back to the API; the UI talks only to the API → [production architecture](production-architecture.md).
+- The document is explicit that the UI was mostly AI-generated and that its run machinery is a local prototype, maps each production component to the code that already does that step (`validation_errors`, `RunConfig`, `run_session`, `app.run`, the result serialisation), and lists what still has to change, starting with extracting interfaces from the folder-based `SessionStore`.
