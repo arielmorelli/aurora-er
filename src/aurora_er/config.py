@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from aurora_er.dto import BatteryStateDTO, HorizonDTO, SolveOptionsDTO
 from aurora_er.loading import BatterySheet, MarketSheet
+from aurora_er.solver import WindowSize
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -22,8 +23,8 @@ class RunConfig:
     horizon: HorizonDTO
     """Whole period to optimise."""
 
-    months_per_window: int
-    """Calendar months solved together; the horizon is solved window by window."""
+    window_size: WindowSize
+    """How much of the horizon is solved at once; windows are solved in order."""
 
     options: SolveOptionsDTO
     """Modelling switches and solver limits."""

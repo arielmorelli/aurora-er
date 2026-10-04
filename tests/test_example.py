@@ -7,7 +7,7 @@ import pytest
 from aurora_er.app import run
 from aurora_er.dto import DispatchResultDTO, HorizonDTO
 from aurora_er.example import example_config, main
-from aurora_er.solver import HighsBackend
+from aurora_er.solver import HighsBackend, WindowSize
 
 INPUTS = Path(__file__).parents[1] / "inputs"
 START = datetime(2018, 1, 1, tzinfo=UTC)
@@ -23,7 +23,7 @@ def test_points_at_the_provided_spreadsheets() -> None:
 def test_covers_all_provided_data_in_monthly_windows() -> None:
     config = example_config(INPUTS)
     assert config.horizon == HorizonDTO(start=START, end=datetime(2021, 1, 1, tzinfo=UTC))
-    assert config.months_per_window == 1
+    assert config.window_size is WindowSize.MONTH
 
 
 def test_starts_with_a_new_empty_battery() -> None:

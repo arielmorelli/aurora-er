@@ -1,7 +1,9 @@
-"""Long horizons solved as consecutive calendar-month windows."""
+"""Long horizons solved as consecutive windows of a day, a week, a month or three months."""
 
 import dataclasses
 from collections.abc import Callable, Sequence
+from datetime import timedelta
+from enum import StrEnum
 
 from aurora_er.dto import (
     BatteryDTO,
@@ -14,6 +16,54 @@ from aurora_er.dto import (
 from aurora_er.solver.backend import MilpBackend
 from aurora_er.solver.solve import solve
 from aurora_er.timing import add_months, to_utc
+
+
+class WindowSize(StrEnum):
+    """How much of the horizon is solved at once."""
+
+    DAY = "day"
+    """24 hours from the horizon start."""
+
+    WEEK = "week"
+    """7 days from the horizon start."""
+
+    MONTH = "month"
+    """A calendar month."""
+
+    QUARTER = "3 months"
+    """Three calendar months."""
+
+
+def rolling_windows(horizon: HorizonDTO, size: WindowSize) -> tuple[HorizonDTO, ...]:
+    """Split `horizon` into consecutive windows of `size`; the last one may be shorter."""
+    match size:
+        case WindowSize.DAY:
+            return fixed_windows(horizon, timedelta(days=1))
+        case WindowSize.WEEK:
+            return fixed_windows(horizon, timedelta(weeks=1))
+        case WindowSize.MONTH:
+            return monthly_windows(horizon, 1)
+        case WindowSize.QUARTER:
+            return monthly_windows(horizon, 3)
+
+
+def fixed_windows(horizon: HorizonDTO, length: timedelta) -> tuple[HorizonDTO, ...]:
+    """Split `horizon` into windows of `length` real time from its start."""
+    if length <= timedelta(0):
+        raise ValueError("length must be positive")
+    windows = []
+    start_utc = to_utc(horizon.start)
+    end_utc = to_utc(horizon.end)
+    while start_utc < end_utc:
+        window_end_utc = min(start_utc + length, end_utc)
+        windows.append(
+            HorizonDTO(
+                start=start_utc.astimezone(horizon.start.tzinfo),
+                end=window_end_utc.astimezone(horizon.start.tzinfo),
+            )
+        )
+        start_utc = window_end_utc
+    return tuple(windows)
 
 
 def monthly_windows(horizon: HorizonDTO, months_per_window: int) -> tuple[HorizonDTO, ...]:

@@ -1,0 +1,5 @@
+# Streamlit's own configuration format; read when `make run` starts the app from the repo root.
+[theme]
+primaryColor = "#1565c0"
+baseFontSize = 18
+chartCategoricalColors = ["#1565c0", "#42a5f5", "#0d47a1", "#90caf9"]

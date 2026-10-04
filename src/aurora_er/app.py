@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from aurora_er.config import RunConfig
 from aurora_er.dto import BatteryDTO, DispatchResultDTO, RollingDispatchResultDTO
 from aurora_er.loading import LoadedMarket, read_battery_spec, read_market
-from aurora_er.solver import MilpBackend, monthly_windows, solve_rolling
+from aurora_er.solver import MilpBackend, rolling_windows, solve_rolling
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -30,7 +30,7 @@ def run(
     loaded_markets = tuple(read_market(sheet) for sheet in config.market_sheets)
     result = solve_rolling(
         battery,
-        monthly_windows(config.horizon, config.months_per_window),
+        rolling_windows(config.horizon, config.window_size),
         [loaded.market for loaded in loaded_markets],
         config.options,
         backend,

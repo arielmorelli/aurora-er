@@ -5,6 +5,7 @@ and `Units` columns. Labels are mapped to `BatterySpecDTO` fields, and units
 are checked so a change of unit in the source fails loudly.
 """
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -74,6 +75,8 @@ def _number(label: str, raw: object, integer: bool) -> float | int:
         value = float(raw)  # type: ignore[arg-type]
     except (TypeError, ValueError) as error:
         raise InputFileError(f"'{label}' is not a number: {raw!r}") from error
+    if not math.isfinite(value):
+        raise InputFileError(f"'{label}' has no value")
     if not integer:
         return value
     if not value.is_integer():

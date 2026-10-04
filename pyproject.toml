@@ -12,6 +12,8 @@ dependencies = [
     "openpyxl>=3.1.5",
     "pandas>=3.0.6",
     "pyomo>=6.10.1",
+    "pyyaml>=6.0.3",
+    "streamlit>=1.65.0",
 ]
 
 [dependency-groups]
@@ -22,6 +24,7 @@ dev = [
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "ruff>=0.8",
+    "types-pyyaml>=6.0.12.20260906",
 ]
 
 [build-system]

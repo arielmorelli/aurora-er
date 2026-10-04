@@ -71,6 +71,11 @@ def test_rejects_non_numeric_value() -> None:
         battery_spec_from_frame(_attachment_1_frame(_replace_row("Capex", "lots", "£")))
 
 
+def test_rejects_empty_value() -> None:
+    with pytest.raises(InputFileError, match="'Capex' has no value"):
+        battery_spec_from_frame(_attachment_1_frame(_replace_row("Capex", None, "£")))
+
+
 def test_rejects_fractional_lifetime() -> None:
     with pytest.raises(InputFileError, match="whole number"):
         battery_spec_from_frame(_attachment_1_frame(_replace_row("Lifetime (1)", 10.5, "years")))

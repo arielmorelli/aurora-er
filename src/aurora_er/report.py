@@ -29,7 +29,7 @@ def format_summary(result: RollingDispatchResultDTO, loaded_markets: Sequence[Lo
         "",
         f"{'Market':<12}{'Charged MWh':>14}{'Discharged MWh':>16}{'Profit £':>14}",
     ]
-    for name, charged, discharged, profit in _market_totals(result):
+    for name, charged, discharged, profit in market_totals(result):
         lines.append(f"{name:<12}{charged:>14,.2f}{discharged:>16,.2f}{profit:>14,.2f}")
     lines += [
         "",
@@ -45,6 +45,13 @@ def format_summary(result: RollingDispatchResultDTO, loaded_markets: Sequence[Lo
         f"{result.final_state.cycles_used:,.2f} cycles, "
         f"commissioned {result.final_state.commissioned_at.isoformat()}",
     ]
+    lines += timestamp_warnings(loaded_markets)
+    return "\n".join(lines)
+
+
+def timestamp_warnings(loaded_markets: Sequence[LoadedMarket]) -> tuple[str, ...]:
+    """One warning per market with misplaced timestamps, followed by one line per row."""
+    lines: list[str] = []
     for loaded in loaded_markets:
         if loaded.misplaced:
             lines.append(
@@ -56,10 +63,11 @@ def format_summary(result: RollingDispatchResultDTO, loaded_markets: Sequence[Lo
                 f"slot {entry.expected.isoformat()}"
                 for entry in loaded.misplaced
             ]
-    return "\n".join(lines)
+    return tuple(lines)
 
 
-def _market_totals(result: RollingDispatchResultDTO) -> list[tuple[str, float, float, float]]:
+def market_totals(result: RollingDispatchResultDTO) -> list[tuple[str, float, float, float]]:
+    """Per market across all windows: name, MWh charged, MWh discharged, profit."""
     totals: dict[str, list[float]] = {}
     for window in result.windows:
         for market in window.markets:
