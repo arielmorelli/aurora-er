@@ -10,13 +10,13 @@ class InvalidDTOError(ValueError):
 
 
 def require(condition: bool, message: str) -> None:
-    """Raise :class:`InvalidDTOError` with ``message`` unless ``condition`` holds."""
+    """Raise `InvalidDTOError` with `message` unless `condition` holds."""
     if not condition:
         raise InvalidDTOError(message)
 
 
 def is_timezone_aware(moment: datetime) -> bool:
-    """Whether ``moment`` carries a timezone that resolves to a UTC offset."""
+    """Whether `moment` carries a timezone that resolves to a UTC offset."""
     return moment.tzinfo is not None and moment.utcoffset() is not None
 
 

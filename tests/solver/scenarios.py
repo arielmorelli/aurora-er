@@ -34,7 +34,7 @@ def battery(
     cycles_used: float = 0,
     commissioned_at: datetime = LONG_AGO,
 ) -> BatteryDTO:
-    """A small battery, by default lossless, non-degrading and commissioned before ``START``."""
+    """A small battery, by default lossless, non-degrading and commissioned before `START`."""
     return BatteryDTO(
         spec=BatterySpecDTO(
             max_charging_rate_mw=max_rate_mw,
@@ -64,7 +64,7 @@ def market(
     start: datetime = START,
     sell_prices: Sequence[float] | None = None,
 ) -> MarketDTO:
-    """A market starting at ``start``; sell prices default to the buy prices."""
+    """A market starting at `start`; sell prices default to the buy prices."""
     return MarketDTO(
         name=name,
         horizon_start=start,
@@ -76,7 +76,7 @@ def market(
 
 
 def hours(count: float, *, start: datetime = START) -> HorizonDTO:
-    """Horizon of ``count`` real hours from ``start``."""
+    """Horizon of `count` real hours from `start`."""
     return HorizonDTO(start=start, end=(to_utc(start) + count * ONE_HOUR).astimezone(start.tzinfo))
 
 

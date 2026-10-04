@@ -183,3 +183,11 @@ decided, and what changed along the way. Formal decisions live in
 - Found a tie: a battery ending exactly at its cycle limit may or may not be
   replaced at the last boundary (cost and restored value cancel). Documented;
   tests avoid that edge.
+
+### 13. Attribution and docstring style
+
+- New rules from the author: no AI co-author or attribution in commits, PRs,
+  comments or docs; docstrings use single backticks. Added to `CLAUDE.md` and
+  the code style guideline.
+- The branch history (not yet pushed) was rewritten to remove the co-author
+  trailers; file contents were verified unchanged.

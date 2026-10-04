@@ -1,4 +1,4 @@
-"""Command-line entry point: ``python -m aurora_er``."""
+"""Command-line entry point: `python -m aurora_er`."""
 
 
 def main() -> None:

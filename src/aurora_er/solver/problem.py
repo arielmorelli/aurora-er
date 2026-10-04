@@ -40,7 +40,7 @@ class PreparedMarket:
         return in_hours(self.step_length)
 
     def interval_of(self, base_step: int) -> int:
-        """Index of the market interval containing ``base_step``."""
+        """Index of the market interval containing `base_step`."""
         return base_step // self.base_steps_per_interval
 
 
@@ -70,7 +70,7 @@ class DispatchProblem:
     """Upper bound on cycle-driven replacements in the horizon."""
 
     cycle_cap: float | None
-    """Maximum cycles in the horizon when cycle pace is enforced, else ``None``."""
+    """Maximum cycles in the horizon when cycle pace is enforced, else `None`."""
 
     initial_capex_gbp: float
     """Purchase cost if the battery is commissioned at the horizon start, else 0."""
@@ -130,7 +130,7 @@ def _prepare_market(market: MarketDTO, horizon: HorizonDTO, base_step: timedelta
 
 
 def calendar_end_of_life(battery: BatteryDTO) -> datetime:
-    """When the installed battery reaches ``lifetime_years``."""
+    """When the installed battery reaches `lifetime_years`."""
     return add_years(battery.state.commissioned_at, battery.spec.lifetime_years)
 
 
@@ -145,7 +145,7 @@ def calendar_end_boundary(
 
 
 def replacement_bound(battery: BatteryDTO, duration: timedelta) -> int:
-    """Most cycle-driven replacements physically possible within ``duration``."""
+    """Most cycle-driven replacements physically possible within `duration`."""
     spec = battery.spec
     max_drained_mwh = (
         in_hours(duration) * spec.max_discharging_rate_mw / (1 - spec.discharging_loss_fraction)
@@ -164,7 +164,7 @@ def cycle_cap(battery: BatteryDTO, horizon: HorizonDTO) -> float:
 def battery_value_gbp(spec: BatterySpecDTO, cycles_used: Any) -> Any:
     """Capex in proportion to the cycles the battery has left.
 
-    Linear in ``cycles_used``, so it also accepts a model expression.
+    Linear in `cycles_used`, so it also accepts a model expression.
     """
     return spec.capex_gbp * (spec.lifetime_cycles - cycles_used) / spec.lifetime_cycles
 

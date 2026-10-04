@@ -1,4 +1,4 @@
-"""Battery parameters (``docs/input/Attachment 1.xlsx``) and operating state."""
+"""Battery parameters (`docs/input/Attachment 1.xlsx`) and operating state."""
 
 from dataclasses import dataclass
 from datetime import datetime

@@ -25,7 +25,7 @@ class MarketDispatchDTO:
     """Power committed to one market, on that market's own steps."""
 
     name: str
-    """Market identifier, as in the input ``MarketDTO``."""
+    """Market identifier, as in the input `MarketDTO`."""
 
     step_length: timedelta
     """Duration of each value below."""
@@ -91,7 +91,7 @@ class DispatchResultDTO:
     """Dispatch per market, in the order of the input markets."""
 
     energy_step_length: timedelta
-    """Spacing of ``stored_energy_mwh``: the finest market step."""
+    """Spacing of `stored_energy_mwh`: the finest market step."""
 
     stored_energy_mwh: tuple[float, ...]
     """Energy in storage at every step boundary, from horizon start to end."""

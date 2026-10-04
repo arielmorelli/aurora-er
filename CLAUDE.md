@@ -26,6 +26,8 @@ before proceeding rather than working around them.
   For anything without a target, go through uv (`uv run …`, `uv add …`).
 - **Before declaring work done**, run `make check` and make sure it passes.
   Report failures honestly.
+- **No AI attribution.** Never add Claude (or any tool) as co-author or
+  credit in commits, PRs, comments or docs.
 - **Commit messages follow Conventional Commits** (ADR 0004), e.g.
   `feat(battery): add state-of-charge limits`.
 - **Every `datetime` is timezone-aware.** Never create or pass a naive one.

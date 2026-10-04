@@ -13,7 +13,7 @@ TOLERANCE = 1e-6
 def assert_follows_brief(
     result: DispatchResultDTO, battery: BatteryDTO, markets: Sequence[MarketDTO]
 ) -> None:
-    """Fail if ``result`` breaks a power, exclusivity, energy, degradation or revenue rule.
+    """Fail if `result` breaks a power, exclusivity, energy, degradation or revenue rule.
 
     Degradation is checked only when no battery was replaced in the horizon.
     """

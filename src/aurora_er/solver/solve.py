@@ -17,11 +17,11 @@ def solve(
     options: SolveOptionsDTO,
     backend: MilpBackend,
 ) -> DispatchResultDTO:
-    """Find the profit-maximising dispatch of ``battery`` across ``markets`` over ``horizon``.
+    """Find the profit-maximising dispatch of `battery` across `markets` over `horizon`.
 
     Raises:
         InvalidSolveInputError: the inputs are inconsistent with each other.
-        SolverFailedError: ``backend`` found no solution.
+        SolverFailedError: `backend` found no solution.
     """
     validate_inputs(battery, horizon, markets)
     problem = prepare_problem(battery, horizon, markets, options)

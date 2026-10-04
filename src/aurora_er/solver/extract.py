@@ -13,7 +13,7 @@ from aurora_er.solver.problem import DispatchProblem, PreparedMarket, battery_va
 def build_result(
     problem: DispatchProblem, model: Any, outcome: BackendOutcome
 ) -> DispatchResultDTO:
-    """Assemble the result DTO from the solution loaded into ``model``."""
+    """Assemble the result DTO from the solution loaded into `model`."""
     markets = tuple(
         _market_dispatch(model, index, market) for index, market in enumerate(problem.markets)
     )

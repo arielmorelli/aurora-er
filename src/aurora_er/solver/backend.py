@@ -26,15 +26,15 @@ class MilpBackend(Protocol):
     """Solves a Pyomo model and loads the solution into its variables."""
 
     def solve(self, model: Any, options: SolveOptionsDTO) -> BackendOutcome:
-        """Solve ``model`` within ``options``; raise :class:`SolverFailedError` if unsolved."""
+        """Solve `model` within `options`; raise `SolverFailedError` if unsolved."""
         ...
 
 
 class HighsBackend:
-    """HiGHS through Pyomo's in-process ``appsi`` interface."""
+    """HiGHS through Pyomo's in-process `appsi` interface."""
 
     def solve(self, model: Any, options: SolveOptionsDTO) -> BackendOutcome:
-        """Solve ``model`` with HiGHS and load the best solution found."""
+        """Solve `model` with HiGHS and load the best solution found."""
         solver = Highs()
         solver.config.load_solution = False
         solver.config.stream_solver = False
@@ -52,7 +52,7 @@ class HighsBackend:
 
 
 def status_for(termination: TerminationCondition) -> SolveStatus | None:
-    """Map a solver termination to a result status; ``None`` if no solution can be trusted."""
+    """Map a solver termination to a result status; `None` if no solution can be trusted."""
     if termination == TerminationCondition.optimal:
         return SolveStatus.OPTIMAL
     if termination == TerminationCondition.maxTimeLimit:
@@ -61,7 +61,7 @@ def status_for(termination: TerminationCondition) -> SolveStatus | None:
 
 
 def relative_gap(objective: float, bound: float) -> float:
-    """``|bound - objective| / |objective|``, as HiGHS defines the MIP gap."""
+    """`|bound - objective| / |objective|`, as HiGHS defines the MIP gap."""
     if objective == bound:
         return 0.0
     if objective == 0:

@@ -1,4 +1,4 @@
-"""Wholesale electricity market prices, as provided in ``docs/input/Attachment 2.xlsx``."""
+"""Wholesale electricity market prices, as provided in `docs/input/Attachment 2.xlsx`."""
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -11,12 +11,12 @@ from aurora_er.timing import elapsed
 class MarketDTO:
     """Price series of one market over a regular time grid.
 
-    The prices at index ``i`` apply to the interval starting at
-    ``horizon_start + i * step_length``.
+    The prices at index `i` apply to the interval starting at
+    `horizon_start + i * step_length`.
     """
 
     name: str
-    """Identifier of the market, e.g. ``"Market 2"``."""
+    """Identifier of the market, e.g. `"Market 2"`."""
 
     horizon_start: datetime
     """Start of the first interval, inclusive. Timezone-aware."""

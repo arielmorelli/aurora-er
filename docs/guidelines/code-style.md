@@ -12,6 +12,8 @@ Docstrings are required: they are the public documentation of the code.
 - Public dataclass fields have an attribute docstring describing meaning and
   unit, and any non-obvious mapping from the source data.
 - Docstrings describe *what* and *why* for a caller, not *how* it's implemented.
+- Code inside docstrings and comments uses single backticks (`name`), never
+  reST double backticks or roles.
 - Tests are named for the behaviour they check and need no docstring.
 
 ## Comments

@@ -9,7 +9,7 @@ from aurora_er.timing import add_years, elapsed, to_utc
 
 
 def validate_inputs(battery: BatteryDTO, horizon: HorizonDTO, markets: Sequence[MarketDTO]) -> None:
-    """Raise :class:`InvalidSolveInputError` if the inputs cannot be solved together."""
+    """Raise `InvalidSolveInputError` if the inputs cannot be solved together."""
     _validate_markets(horizon, markets)
     _validate_battery_lifetime(battery, horizon)
 

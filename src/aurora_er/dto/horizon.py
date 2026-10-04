@@ -9,7 +9,7 @@ from aurora_er.timing import elapsed
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class HorizonDTO:
-    """A half-open time window ``[start, end)``."""
+    """A half-open time window `[start, end)`."""
 
     start: datetime
     """First instant of the window, inclusive. Timezone-aware."""

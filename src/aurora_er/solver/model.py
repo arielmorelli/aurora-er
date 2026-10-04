@@ -1,4 +1,4 @@
-"""Pyomo MILP for battery dispatch, as specified in ``docs/problem-definition.md``."""
+"""Pyomo MILP for battery dispatch, as specified in `docs/problem-definition.md`."""
 
 from typing import Any
 
@@ -8,7 +8,7 @@ from aurora_er.solver.problem import DispatchProblem, battery_value_gbp
 
 
 def build_model(problem: DispatchProblem) -> Any:
-    """Build the dispatch MILP for ``problem``; variables are left unsolved."""
+    """Build the dispatch MILP for `problem`; variables are left unsolved."""
     model = pyo.ConcreteModel(name="battery_dispatch")
     _add_sets(model, problem)
     _add_variables(model, problem)
@@ -20,7 +20,7 @@ def build_model(problem: DispatchProblem) -> Any:
 
 
 def total_charge_mw(model: Any, problem: DispatchProblem, step: int) -> Any:
-    """Charging power across all markets during base ``step``."""
+    """Charging power across all markets during base `step`."""
     return sum(
         model.charge[index, market.interval_of(step)]
         for index, market in enumerate(problem.markets)
@@ -28,7 +28,7 @@ def total_charge_mw(model: Any, problem: DispatchProblem, step: int) -> Any:
 
 
 def total_discharge_mw(model: Any, problem: DispatchProblem, step: int) -> Any:
-    """Discharging power across all markets during base ``step``."""
+    """Discharging power across all markets during base `step`."""
     return sum(
         model.discharge[index, market.interval_of(step)]
         for index, market in enumerate(problem.markets)
@@ -36,7 +36,7 @@ def total_discharge_mw(model: Any, problem: DispatchProblem, step: int) -> Any:
 
 
 def drained_cycles(model: Any, problem: DispatchProblem, step: int) -> Any:
-    """Full-cycle equivalents leaving storage during base ``step``."""
+    """Full-cycle equivalents leaving storage during base `step`."""
     spec = problem.battery.spec
     drained_mwh = (
         problem.base_step_hours
