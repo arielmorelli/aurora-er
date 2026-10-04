@@ -52,6 +52,10 @@ The model handles any number of markets, each with its own step, as long as ever
 
 `make run` opens a prototype UI for running the model without code: upload the spreadsheets (or press "Fill with example"), set the battery state, horizon, window size and solver options, and follow runs in History. It is meant for local use; stopping it stops any running sessions. How it would work in production (an API, a queue and isolated workers) is described in [`docs/production-architecture.md`](docs/production-architecture.md).
 
+## Next steps
+
+How this would run in production (an API that validates and stores runs, a queue, and isolated workers that scale independently, with the UI talking only to the API), what in the code is already ready for it, what still has to change, and the modelling improvements are in [`docs/production-architecture.md`](docs/production-architecture.md). What is simplified today is listed in [`docs/known-limitations.md`](docs/known-limitations.md).
+
 ## Project layout
 
 ```
