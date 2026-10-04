@@ -17,6 +17,9 @@ before proceeding rather than working around them.
   dependencies or the modelling approach, draft a new ADR with status
   *Proposed* and ask the user to accept it. Do not edit accepted ADRs —
   supersede them.
+- **Keep the history.** After each step, append bullets to
+  [`docs/history.md`](docs/history.md): what was asked, what was decided,
+  alternatives considered and any course corrections.
 - **Stay in scope.** Do only what was asked. Suggest extra work; don't do it.
 - **`docs/input/` is read-only.** It holds the exercise brief and data.
 - **Use the Makefile:** `make install`, `make run`, `make test`, `make check`.
@@ -26,3 +29,6 @@ before proceeding rather than working around them.
 - **Commit messages follow Conventional Commits** (ADR 0004), e.g.
   `feat(battery): add state-of-charge limits`.
 - Code is fully typed (mypy strict) and every new behaviour has unit tests.
+- **Clean code: docstrings are required, `#` comments only when extremely
+  necessary**
+  (see [`docs/guidelines/code-style.md`](docs/guidelines/code-style.md)).
