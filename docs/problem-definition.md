@@ -1,18 +1,10 @@
 # Problem definition
 
-The battery dispatch problem the solver implements: inputs, rules, formulation
-and output. Every rule traces back to the brief
-(`inputs/2nd Round Technical Question.pdf`) or to the battery parameters
-(`inputs/Attachment 1.xlsx`). Decisions and rejected alternatives are in
-[ADR 0007](adr/0007-battery-dispatch-formulation.md); the modelling tool is in
-[ADR 0006](adr/0006-optimisation-modelling-and-solver.md).
+The battery dispatch problem the solver implements: inputs, rules, formulation and output. Every rule traces back to the brief (`inputs/2nd Round Technical Question.pdf`) or to the battery parameters (`inputs/Attachment 1.xlsx`). Decisions and rejected alternatives are in [ADR 0007](adr/0007-battery-dispatch-formulation.md); the modelling tool is in [ADR 0006](adr/0006-optimisation-modelling-and-solver.md).
 
-No value is hard-coded: every number the model uses comes from an input DTO.
-The only constants in code are unit conversions (hours per timedelta, percent
-to fraction).
+No value is hard-coded: every number the model uses comes from an input DTO. The only constants in code are unit conversions (hours per timedelta, percent to fraction).
 
-Every `datetime`, in inputs and outputs, is timezone-aware. Naive datetimes
-are rejected.
+Every `datetime`, in inputs and outputs, is timezone-aware. Naive datetimes are rejected.
 
 ## Entry point
 
@@ -28,17 +20,13 @@ def solve(
 ) -> DispatchResultDTO: ...
 ```
 
-Long horizons are solved as consecutive monthly windows by `solve_rolling`,
-which calls `solve` once per window and chains the battery state
-([ADR 0010](adr/0010-rolling-monthly-windows.md)).
+Long horizons are solved as consecutive windows (a day, a week, a month or three months) by `solve_rolling`, which calls `solve` once per window and chains the battery state ([ADR 0010](adr/0010-rolling-monthly-windows.md), [ADR 0012](adr/0012-window-sizes.md)).
 
-`backend` is injected ([dependency injection](guidelines/code-style.md#dependency-injection)):
-`HighsBackend` in production, fakes in tests.
+`backend` is injected ([dependency injection](guidelines/code-style.md#dependency-injection)): `HighsBackend` in production, fakes in tests.
 
 ## Inputs
 
-All DTOs are frozen, keyword-only dataclasses with no default values
-([ADR 0005](adr/0005-dtos-as-frozen-dataclasses.md)).
+All DTOs are frozen, keyword-only dataclasses with no default values ([ADR 0005](adr/0005-dtos-as-frozen-dataclasses.md)).
 
 ```
 BatteryDTO
@@ -76,9 +64,7 @@ SolveOptionsDTO
 └── mip_gap
 ```
 
-The brief gives one price per interval; for the provided data the buy and
-sell series are identical. They are separate so markets with a bid/ask spread
-need no model change.
+The brief gives one price per interval; for the provided data the buy and sell series are identical. They are separate so markets with a bid/ask spread need no model change.
 
 ## Rules
 
@@ -100,10 +86,7 @@ need no model change.
 | R14 | Each end of life triggers a replacement costing `capex_gbp` | Author's decision on R13 |
 | R15 | Purchase (`capex_gbp`) and `fixed_operational_costs_gbp_per_year` are costs | Attachment 1 |
 
-Check against the brief's example: a 5 MW / 5 MWh battery committing 2 MW
-to Market 1 for two half-hours and 3 MW to Market 2 for one hour uses
-2 + 3 = 5 MW at every instant (R5) and 2 × 1 h + 3 × 1 h = 5 MWh (R8,
-ignoring losses). Committing 5 MW to both would violate R5.
+Check against the brief's example: a 5 MW / 5 MWh battery committing 2 MW to Market 1 for two half-hours and 3 MW to Market 2 for one hour uses 2 + 3 = 5 MW at every instant (R5) and 2 × 1 h + 3 × 1 h = 5 MWh (R8, ignoring losses). Committing 5 MW to both would violate R5.
 
 ## Formulation
 
@@ -111,10 +94,8 @@ A mixed-integer linear program (MILP), solved with HiGHS through Pyomo.
 
 ### Time grid
 
-- `δ` = the finest market step length; every market's step length must be a
-  whole multiple of `δ`.
-- Base steps `t = 0 … T−1` cover the horizon, `T = (end − start) / δ`.
-  Boundaries `t = 0 … T` are the instants between them.
+- `δ` = the finest market step length; every market's step length must be a whole multiple of `δ`.
+- Base steps `t = 0 … T−1` cover the horizon, `T = (end − start) / δ`. Boundaries `t = 0 … T` are the instants between them.
 - `k(m, t)` = the interval of market `m` that contains base step `t`.
 - `h(x)` = a duration `x` in hours.
 
@@ -177,18 +158,13 @@ at its boundary tc (first boundary at or after that instant):
   s[t] = 0 for t ≠ tc
 ```
 
-`R` bounds the number of cycle-driven replacements and is derived from the
-inputs, not hard-coded: the most cycles the battery could run in the horizon,
-`z0 + T × h(δ) × Pd / ((1 − ηd) × V)`, divided by `Lc`, rounded up (at
-least 1).
+`R` bounds the number of cycle-driven replacements and is derived from the inputs, not hard-coded: the most cycles the battery could run in the horizon, `z0 + T × h(δ) × Pd / ((1 − ηd) × V)`, divided by `Lc`, rounded up (at least 1).
 
-When the cycle limit is crossed mid-step, the excess cycles carry over to the
-new battery (`z` drops by exactly `Lc`); this is exact up to one base step.
+When the cycle limit is crossed mid-step, the excess cycles carry over to the new battery (`z` drops by exactly `Lc`); this is exact up to one base step.
 
 ### Objective
 
-Battery wear is valued ([ADR 0008](adr/0008-valuing-battery-wear.md)): the
-installed battery is worth its capex in proportion to the cycles it has left.
+Battery wear is valued ([ADR 0008](adr/0008-valuing-battery-wear.md)): the installed battery is worth its capex in proportion to the cycles it has left.
 
 ```
 battery_value(z)  = X × (Lc − z) / Lc
@@ -199,12 +175,9 @@ market_profit     = Σm Σk h(Δm) × (ps[m,k] × d[m,k] − pb[m,k] × c[m,k])
 replacement_capex = X × (r[T] + (1 − w) × [tc in horizon])
 ```
 
-Each cycle therefore costs `X / Lc` (£100 for Attachment 1): a cycle-driven
-replacement pays `X` but restores `X` of value, so it nets to zero, and a
-calendar replacement costs the value the old battery still had.
+Each cycle therefore costs `X / Lc` (£100 for Attachment 1): a cycle-driven replacement pays `X` but restores `X` of value, so it nets to zero, and a calendar replacement costs the value the old battery still had.
 
-The remaining terms do not depend on the decisions and are added to the
-reported result only:
+The remaining terms do not depend on the decisions and are added to the reported result only:
 
 ```
 initial_capex       = X  if commissioned_at == horizon.start, else 0
@@ -216,21 +189,17 @@ battery_value_start = 0  if commissioned_at == horizon.start (bought in the hori
 net_profit = market_profit − capex − opex + battery_value_end − battery_value_start
 ```
 
-Battery value ignores calendar age: an unused battery keeps its value until
-its calendar end of life, when the calendar replacement writes it off.
+Battery value ignores calendar age: an unused battery keeps its value until its calendar end of life, when the calendar replacement writes it off.
 
 ### Optional: cycle pace
 
-When `options.enforce_cycle_pace` is true, cycles in the horizon are capped
-to the battery's remaining cycles spread evenly over its remaining calendar
-life:
+When `options.enforce_cycle_pace` is true, cycles in the horizon are capped to the battery's remaining cycles spread evenly over its remaining calendar life:
 
 ```
 Σt q[t] ≤ (Lc − z0) × h(end − start) / h(commissioned_at + Ly − start)
 ```
 
-When false, cycles are limited by their wear cost and by R13/R14. With wear
-valued, the cap is a comparison tool rather than a necessity.
+When false, cycles are limited by their wear cost and by R13/R14. With wear valued, the cap is a comparison tool rather than a necessity.
 
 ## Output
 
@@ -262,51 +231,34 @@ Result DTOs carry no Pyomo objects.
 
 ## Input validation
 
-**On DTO construction** ([ADR 0005](adr/0005-dtos-as-frozen-dataclasses.md)),
-raising `InvalidDTOError`, every check that needs only the DTO's own fields:
+**On DTO construction** ([ADR 0005](adr/0005-dtos-as-frozen-dataclasses.md)), raising `InvalidDTOError`, every check that needs only the DTO's own fields:
 
-- `BatterySpecDTO`: rates and volume positive; loss fractions in `[0, 1)`;
-  lifetimes positive; degradation not negative and leaving usable volume after
-  `lifetime_cycles`; capex and opex not negative
-- `MarketDTO`: non-blank name; timezone-aware horizon; `horizon_start <
-  horizon_end`; positive step; horizon a whole number of steps; one finite
-  price per step (negative prices allowed)
-- New DTOs follow the same rule (e.g. `HorizonDTO`: aware and ordered;
-  `BatteryStateDTO`: aware `commissioned_at`, non-negative energy and cycles;
-  `SolveOptionsDTO`: positive time limit, gap in `[0, 1)`)
+- `BatterySpecDTO`: rates and volume positive; loss fractions in `[0, 1)`; lifetimes positive; degradation not negative and leaving usable volume after `lifetime_cycles`; capex and opex not negative
+- `MarketDTO`: non-blank name; timezone-aware horizon; `horizon_start < horizon_end`; positive step; horizon a whole number of steps; one finite price per step (negative prices allowed)
+- New DTOs follow the same rule (e.g. `HorizonDTO`: aware and ordered; `BatteryStateDTO`: aware `commissioned_at`, non-negative energy and cycles; `SolveOptionsDTO`: positive time limit, gap in `[0, 1)`)
 
 **In `solve()`**, before building the model, the checks that span DTOs:
 
-- Every `datetime` is timezone-aware: `horizon.start`, `horizon.end`,
-  each market's `horizon_start`/`horizon_end`, and `state.commissioned_at`
+- Every `datetime` is timezone-aware: `horizon.start`, `horizon.end`, each market's `horizon_start`/`horizon_end`, and `state.commissioned_at`
 - `horizon.start < horizon.end`
 - `markets` is non-empty and market names are unique
 - Every market covers the horizon: `horizon_start ≤ start` and `end ≤ horizon_end`
 - `start` and `end` fall on every market's interval boundaries (R2)
 - Every market's `step_length` is a whole multiple of the finest one
 - Every market's buy and sell series have one value per step of its own horizon
-- `horizon.end − horizon.start ≤ lifetime_years` (at most one calendar end of
-  life per horizon; a cycle-driven replacement cannot also age out within it)
+- `horizon.end − horizon.start ≤ lifetime_years` (at most one calendar end of life per horizon; a cycle-driven replacement cannot also age out within it)
 - `commissioned_at ≤ horizon.start < commissioned_at + lifetime_years`
 - `0 ≤ cycles_used ≤ lifetime_cycles`
 - `0 ≤ stored_energy_mwh ≤ V × (1 − g × cycles_used)`
 
-Valid inputs always have a feasible solution (doing nothing), so a solver
-failure is raised as an error rather than returned as a status.
+Valid inputs always have a feasible solution (doing nothing), so a solver failure is raised as an error rather than returned as a status.
 
 ## Open questions
 
-- **Stored energy at the end of the horizon.** Not in the brief, so it is
-  unconstrained: energy left in the battery has no value and the optimiser
-  will sell it if profitable. With monthly windows this means each month
-  tends to end empty.
+- **Stored energy at the end of the horizon.** Not in the brief, so it is unconstrained: energy left in the battery has no value and the optimiser will sell it if profitable. With monthly windows this means each month tends to end empty.
 
 ## Known limitations
 
-- **Tie at the cycle limit.** A battery that ends the horizon exactly at
-  `lifetime_cycles` may or may not be replaced at the last boundary: the
-  replacement costs `X` and restores `X` of value, so both are optimal.
-- **Battery value is linear in cycles.** It ignores calendar age and the
-  volume already lost to degradation.
-- **Calendar replacement of a replaced battery** is not modelled; validation
-  keeps the horizon within one calendar lifetime so it cannot occur.
+- **Tie at the cycle limit.** A battery that ends the horizon exactly at `lifetime_cycles` may or may not be replaced at the last boundary: the replacement costs `X` and restores `X` of value, so both are optimal.
+- **Battery value is linear in cycles.** It ignores calendar age and the volume already lost to degradation.
+- **Calendar replacement of a replaced battery** is not modelled; validation keeps the horizon within one calendar lifetime so it cannot occur.

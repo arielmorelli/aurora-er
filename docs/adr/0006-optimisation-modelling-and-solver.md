@@ -5,35 +5,19 @@
 
 ## Context
 
-The battery must decide, for every interval, how much power to commit to
-charging or discharging in each market so that profit is maximised
-(see the brief in `docs/input/`). The rules map naturally onto a
-mathematical program:
+The battery must decide, for every interval, how much power to commit to charging or discharging in each market so that profit is maximised (see the brief in `docs/input/`). The rules map naturally onto a mathematical program:
 
-- **Continuous decisions:** charge/discharge power per market per interval,
-  state of charge per interval.
-- **Linear constraints:** power limits shared across markets, energy balance
-  with charging/discharging losses, storage bounds, and Market 2 commitments
-  held constant over each hour (two Market 1 half-hours).
-- **One logical constraint:** the battery cannot charge and discharge at the
-  same time. With negative prices (both markets go below zero in the data),
-  an LP would profit from charging and discharging simultaneously to burn
-  energy through losses, so this needs a **binary** per interval. The problem
-  is therefore a **MILP**.
-- **Size:** the full dataset is three years — 52,608 half-hourly and 26,304
-  hourly prices. A single monolithic model has ~250k continuous variables and
-  ~50k binaries; solving it in windows (e.g. a rolling horizon) may be needed.
-  That is a modelling decision for a later ADR, but the tool must handle it.
+- **Continuous decisions:** charge/discharge power per market per interval, state of charge per interval.
+- **Linear constraints:** power limits shared across markets, energy balance with charging/discharging losses, storage bounds, and Market 2 commitments held constant over each hour (two Market 1 half-hours).
+- **One logical constraint:** the battery cannot charge and discharge at the same time. With negative prices (both markets go below zero in the data), an LP would profit from charging and discharging simultaneously to burn energy through losses, so this needs a **binary** per interval. The problem is therefore a **MILP**.
+- **Size:** the full dataset is three years — 52,608 half-hourly and 26,304 hourly prices. A single monolithic model has ~250k continuous variables and ~50k binaries; solving it in windows (e.g. a rolling horizon) may be needed. That is a modelling decision for a later ADR, but the tool must handle it.
 
 Requirements for the tool, in priority order:
 
-1. **Reproducible by reviewers with `make install` only** — free, open-source,
-   pip-installable, no licence or system binary to set up.
+1. **Reproducible by reviewers with `make install` only** — free, open-source, pip-installable, no licence or system binary to set up.
 2. Solves MILPs of the size above in reasonable time.
-3. Readable model code: constraints should look like the maths, so reviewers
-   can check them against the brief.
-4. Solver-agnostic, so a faster solver can be swapped in without rewriting the
-   model.
+3. Readable model code: constraints should look like the maths, so reviewers can check them against the brief.
+4. Solver-agnostic, so a faster solver can be swapped in without rewriting the model.
 5. Mature and well documented.
 
 ## Options considered
@@ -70,27 +54,16 @@ Requirements for the tool, in priority order:
 
 ## Decision
 
-- Model the battery dispatch as a **MILP in Pyomo**, solved with **HiGHS**
-  through the `highspy` Python package (Pyomo's in-process HiGHS interface).
-- `pyomo` and `highspy` are runtime dependencies, pinned through `uv.lock`, so
-  `make install` is enough to run the model — no external solver binary.
-- **Pyomo is confined to the optimisation module(s).** Inputs arrive as DTOs
-  ([ADR 0005](0005-dtos-as-frozen-dataclasses.md)) and results leave as typed
-  objects; nothing outside the model builder touches Pyomo objects.
-- Pyomo has no type information, so mypy is configured to skip it
-  (`ignore_missing_imports` for `pyomo.*` in `pyproject.toml`). The confinement
-  above keeps the untyped surface small.
-- A simple rule-based strategy may be added later as a baseline for comparison,
-  not as an alternative model.
+- Model the battery dispatch as a **MILP in Pyomo**, solved with **HiGHS** through the `highspy` Python package (Pyomo's in-process HiGHS interface).
+- `pyomo` and `highspy` are runtime dependencies, pinned through `uv.lock`, so `make install` is enough to run the model — no external solver binary.
+- **Pyomo is confined to the optimisation module(s).** Inputs arrive as DTOs ([ADR 0005](0005-dtos-as-frozen-dataclasses.md)) and results leave as typed objects; nothing outside the model builder touches Pyomo objects.
+- Pyomo has no type information, so mypy is configured to skip it (`ignore_missing_imports` for `pyomo.*` in `pyproject.toml`). The confinement above keeps the untyped surface small.
+- A simple rule-based strategy may be added later as a baseline for comparison, not as an alternative model.
 
 ## Consequences
 
-- Reviewers get optimal (within the model) and reproducible results with no
-  extra setup.
+- Reviewers get optimal (within the model) and reproducible results with no extra setup.
 - Constraints can be read side by side with the brief.
 - Switching to SCIP, CBC or a commercial solver is a configuration change.
-- Model build time in Pyomo may dominate on the full three-year horizon; if
-  so, the next step is a rolling-horizon or windowed formulation (separate
-  ADR) before considering a faster modelling layer such as linopy.
-- Code using Pyomo loses static type checking; it must be covered by unit
-  tests on small, hand-checkable instances.
+- Model build time in Pyomo may dominate on the full three-year horizon; if so, the next step is a rolling-horizon or windowed formulation (separate ADR) before considering a faster modelling layer such as linopy.
+- Code using Pyomo loses static type checking; it must be covered by unit tests on small, hand-checkable instances.

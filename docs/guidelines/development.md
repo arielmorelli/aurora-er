@@ -1,8 +1,6 @@
 # Development workflow
 
-Rationale: [ADR 0002](../adr/0002-python-tooling.md) (tooling),
-[ADR 0003](../adr/0003-makefile-as-command-interface.md) (Makefile),
-[ADR 0004](../adr/0004-conventional-commits.md) (commit messages).
+Rationale: [ADR 0002](../adr/0002-python-tooling.md) (tooling), [ADR 0003](../adr/0003-makefile-as-command-interface.md) (Makefile), [ADR 0004](../adr/0004-conventional-commits.md) (commit messages).
 
 ## Setup
 
@@ -16,6 +14,8 @@ make install
 | --- | --- |
 | List targets | `make` |
 | Run the model on the provided data | `make run-example` |
+| Start the UI | `make run` |
+| Delete generated files (UI sessions, caches, build output; keeps `.venv`) | `make clean` |
 | Run tests | `make test` |
 | Run every quality gate (lint, format, types, tests) | `make check` |
 
@@ -29,13 +29,10 @@ Less frequent tasks, run directly through uv:
 
 ## Conventions
 
-- Source code goes in `src/aurora_er/`; unit tests in `tests/`, named
-  `test_<module>.py`.
+- Source code goes in `src/aurora_er/`; unit tests in `tests/`, named `test_<module>.py`.
 - Every new behaviour comes with unit tests.
 - `make check` passes before every commit.
-- Commit messages follow Conventional Commits, e.g.
-  `feat(battery): add state-of-charge limits` (see ADR 0004).
+- Commit messages follow Conventional Commits, e.g. `feat(battery): add state-of-charge limits` (see ADR 0004).
 - Never hand-edit `uv.lock`; change dependencies through `uv add` / `uv remove`.
 - Never modify files in `inputs/`.
-- A change that alters structure, tooling or the modelling approach needs an ADR
-  (copy [`adr/template.md`](../adr/template.md)).
+- A change that alters structure, tooling or the modelling approach needs an ADR (copy [`adr/template.md`](../adr/template.md)).
