@@ -200,3 +200,4 @@ How the project is being built, step by step: what was asked, what was decided, 
 
 - On request, a GitHub Actions workflow runs `make test` and `make check` on every pull request and push to `main`, installing exactly the locked dependencies → [ADR 0016](adr/0016-continuous-integration.md). There is no deployment step, as there is no environment to deploy to.
 - The README gained a "Next steps" section pointing to the production architecture and the known limitations.
+- CI failed with `No module named aurora_er.sessions`: the `.gitignore` rule `sessions/` for the UI's run folder matched every folder named `sessions`, so `src/aurora_er/sessions` and `tests/sessions` had never been committed (they only existed locally). The rule is now anchored (`/sessions/`), the packages are committed, and the CI steps were verified on a fresh clone.
